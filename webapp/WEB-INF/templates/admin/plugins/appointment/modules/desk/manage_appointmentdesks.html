@@ -1,0 +1,101 @@
+<#include "manageappointmentdesk_tabs.html" />
+<@box>
+	<@boxHeader title='#i18n{appointment-desk.manage_appointmentdesk.title}' boxTools=true>
+		<@tform class='form-inline pull-right' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
+			<@button type='submit' name='view_createAppointmentDesk' buttonIcon='plus' title='#i18n{appointment-desk.manage_appointmentdesks.buttonAdd}' />
+		</@tform>
+	</@boxHeader>
+	<@boxBody>       
+    <@messages infos=infos />
+    <@paginationAdmin paginator=paginator combo=1 />
+<@row>
+<@tform class='' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
+<input type="hidden" name="id_form" value="${idForm!}">
+<@formGroup labelFor='day' labelKey=''>
+	<@inputGroup>
+		<@input type='text' name='day' id='day' value="${day!''}" />
+		<@inputGroupItem type='addon'>
+		<@icon style='calendar' />
+		</@inputGroupItem>
+	</@inputGroup>
+</@formGroup>
+<@button type='submit' name='view_manageAppointmentDesks' buttonIcon='search' title='' />
+</@tform>
+</@row>
+    <div class="clearfix"></div>
+<@row>
+    <@table>
+        <tr>
+            <input type="hidden" id="id" name="id"/>
+	<th></th>
+	<#assign x=numb_desk>
+	<#assign bool="00:00" >
+	<#list 1..x as seq >
+            <th>Guichet: ${seq}</th>
+	</#list>
+            <th style="background-color:red;" >Surbooking</th>
+           
+        </tr>
+        <@tableHeadBodySeparator />
+ <#list places as place >
+
+
+	<#if place.slot.startingTime != bool >		
+          <tr>	
+	   <td>${place.slot.startingTime}
+	   </td>
+         </#if>
+		    <#if place.appointment ??>
+			<td>
+			<#if place.isSurbooking == false >
+				<#if place.isOpen == true >
+				<a  href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}" > <i class="fa fa-unlock" ></i>  </a>
+				
+				</#if>
+				<span class="bg-warning">${place.appointment.user.lastName} ${place.appointment.user.firstName} </span>
+			<#else>
+			<span class="bg-warning">${place.appointment.user.lastName} ${place.appointment.user.firstName} </span>
+			</#if>
+			</td>
+		   <#elseif place.isSurbooking == true>
+			
+		   <#else>
+		    <td>
+				
+				<#if place.isOpen == true >
+				<a href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}" > <i class="fa fa-unlock" ></i>  </a>
+				<#else>
+				<a href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=openAppointmentDesk&id=${place.idAppointmentDesk}&day=${day}&id_form=${idForm}&" > <i class="glyphicon glyphicon-lock" ></i>  </a>
+				</#if>
+			
+		    </td>
+		   </#if>
+
+	<#assign bool=place.slot.startingTime >
+	<#if  place.slot.startingTime != bool>
+          </tr>
+	</#if>
+
+</#list>
+    
+</@table>
+</@row>
+    <@paginationAdmin paginator=paginator />
+
+
+  </@boxBody>
+</@box>
+<script src="js/jquery/plugins/ui/jquery-ui-1.9.2.custom.min.js"></script>
+<@getDatePickerBootstrap idField="dateAppointment" language="${language}" />
+<script type="text/javascript">
+    $(function () {
+        
+        $('#day').datepicker({
+        language : '${language}',
+        weekStart : 1,
+        todayBtn : true,
+        todayHighLight : true,
+        autoclose : true
+    });
+    });      
+</script>
