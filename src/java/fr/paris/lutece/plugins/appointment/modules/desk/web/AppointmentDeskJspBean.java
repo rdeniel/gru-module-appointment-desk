@@ -36,6 +36,7 @@
 package fr.paris.lutece.plugins.appointment.modules.desk.web;
 
 import fr.paris.lutece.plugins.appointment.business.planning.WeekDefinition;
+import fr.paris.lutece.plugins.appointment.business.slot.Period;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
 import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDesk;
 import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDeskHome;
@@ -52,6 +53,7 @@ import fr.paris.lutece.util.date.DateUtil;
 import fr.paris.lutece.util.url.UrlItem;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Comparator;
@@ -84,6 +86,13 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PARAMETER_CLOSING_TIME = "end_closing";
     private static final String PARAMETER_NUMB_DESK = "numb_desk";
     private static final String PARAMETER_DATE_DAY = "day";
+    private static final String PARAMETER_STARTING_DATE_TIME = "starting_date_time";
+    private static final String PARAMETER_ENDING_DATE_TIME = "ending_date_time";
+    private static final String PARAMETER_IS_OPEN = "is_open";
+    private static final String PARAMETER_IS_SPECIFIC = "is_specific";
+    private static final String PARAMETER_MAX_CAPACITY = "max_capacity";
+    private static final String PARAMETER_ID_SLOT = "id_slot";
+
 
     // Properties for page titles
     private static final String PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS = "appointment-desk.manage_appointmentdesks.pageTitle";
@@ -182,7 +191,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
             return redirectView( request, VIEW_MANAGE_APPOINTMENTDESKS );
         }
 
-        AppointmentDeskHome.create( _appointmentdesk );
+        AppointmentDeskService.closeAppointmentDesk(_appointmentdesk, getSlot( request) );
         addInfo( INFO_APPOINTMENTDESK_CREATED, getLocale( ) );
         UrlItem url = new UrlItem( AppPathService.getBaseUrl( request ) + JSP_MANAGE_APPOINTMENTDESKS );
         url.addParameter( PARAMETER_DATE_DAY, strDayDate );
@@ -206,7 +215,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
         String strIdForm = request.getParameter( PARAMETER_ID_FORM );
 
-        AppointmentDeskHome.remove( nId );
+        AppointmentDeskService.openAppointmentDesk(nId, getSlot( request ));
         addInfo( INFO_APPOINTMENTDESK_REMOVED, getLocale( ) );
         UrlItem url = new UrlItem( AppPathService.getBaseUrl( request ) + JSP_MANAGE_APPOINTMENTDESKS );
 
@@ -245,4 +254,34 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         appointmentDesk.setDeskNumber( Integer.parseInt( strDeskNumber ) );
 
     }
+    /**
+     * Get and build the slot 
+     * @param request the request
+     * @return the slot builded
+     */
+    private Slot getSlot(HttpServletRequest request) {
+    	
+	   	 int nIdSlot = Integer.parseInt( request.getParameter( PARAMETER_ID_SLOT ) );
+	     int nIdForm = Integer.parseInt( request.getParameter( PARAMETER_ID_FORM ));
+	     Slot slot= null;
+
+	        // If nIdSlot == 0, the slot has not been created yet
+	        if ( nIdSlot == 0 )
+	        {
+	            // Need to get all the informations to create the slot
+	            LocalDateTime startingDateTime = LocalDateTime.parse( request.getParameter( PARAMETER_STARTING_DATE_TIME ) );
+	            LocalDateTime endingDateTime = LocalDateTime.parse( request.getParameter( PARAMETER_ENDING_DATE_TIME ) );
+	            boolean bIsOpen = Boolean.parseBoolean( request.getParameter( PARAMETER_IS_OPEN ) );
+	            boolean bIsSpecific = Boolean.parseBoolean( request.getParameter( PARAMETER_IS_SPECIFIC ) );
+	            int nMaxCapacity = Integer.parseInt( request.getParameter( PARAMETER_MAX_CAPACITY ) );
+	            slot = SlotService.buildSlot( nIdForm, new Period( startingDateTime, endingDateTime ), nMaxCapacity, nMaxCapacity, nMaxCapacity, 0, bIsOpen,
+	                    bIsSpecific );
+	        }
+	        else
+	        {
+	            slot = SlotService.findSlotById( nIdSlot );
+	        }
+	        return slot;
+   }
+
 }
