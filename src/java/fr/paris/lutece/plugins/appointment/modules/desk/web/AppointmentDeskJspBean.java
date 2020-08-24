@@ -35,6 +35,7 @@
 
 package fr.paris.lutece.plugins.appointment.modules.desk.web;
 
+import fr.paris.lutece.plugins.appointment.business.comment.Comment;
 import fr.paris.lutece.plugins.appointment.business.planning.WeekDefinition;
 import fr.paris.lutece.plugins.appointment.business.slot.Period;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
@@ -42,6 +43,7 @@ import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDesk
 import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDeskHome;
 import fr.paris.lutece.plugins.appointment.modules.desk.service.AppointmentDeskService;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.Place;
+import fr.paris.lutece.plugins.appointment.service.CommentService;
 import fr.paris.lutece.plugins.appointment.service.SlotService;
 import fr.paris.lutece.plugins.appointment.service.WeekDefinitionService;
 import fr.paris.lutece.portal.service.util.AppPathService;
@@ -102,6 +104,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String MARK_LOCALE = "language";
     private static final String MARK_DATE_DAY = "day";
     private static final String MARK_ID_FORM = "idForm";
+    private static final String MARK_LIST_COMMENTS = "list_comments";
 
     private static final String JSP_MANAGE_APPOINTMENTDESKS = "jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp";
 
@@ -161,7 +164,9 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         List<AppointmentDesk> listAppointmentDesks = AppointmentDeskHome.getAppointmentDesksList( );
         List<Place> listPlace = AppointmentDeskService.builListdPlace( listSlot, nIdForm, dateDay, appointmentDesk );
         Map<String, Object> model = getPaginatedListModel( request, MARK_APPOINTMENTDESK_LIST, listAppointmentDesks, JSP_MANAGE_APPOINTMENTDESKS );
-
+        List<Comment> listComment= CommentService.finListComments(java.sql.Date.valueOf(dateDay),java.sql.Date.valueOf(dateDay.plusDays(1)), nIdForm);
+        
+        model.put( MARK_LIST_COMMENTS, listComment);
         model.put( PARAMETER_NUMB_DESK, appointmentDesk );
         model.put( MARK_LOCALE, getLocale( ) );
         model.put( PARAMETER_LIST_PLACE, listPlace );

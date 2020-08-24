@@ -12,15 +12,31 @@
 <@tform class='' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
 <input type="hidden" name="id_form" value="${idForm!}">
 <@formGroup labelFor='day' labelKey=''>
+
 	<@inputGroup>
+
 		<@input type='text' name='day' id='day' value="${day!''}" />
 		<@inputGroupItem type='addon'>
 		<@icon style='calendar' />
+		<@button type='submit' name='view_manageAppointmentDesks' buttonIcon='search' title='' />
 		</@inputGroupItem>
+
 	</@inputGroup>
+
 </@formGroup>
-<@button type='submit' name='view_manageAppointmentDesks' buttonIcon='search' title='' />
+
+
 </@tform>
+
+<@formGroup labelFor='day' labelKey=''>
+<#list list_comments as comment>
+<div class="bg-warning">
+Commentaire du ${comment.startingValidityDate}: ${comment.comment!}
+</div>
+
+</#list>
+<a rel='stylesheet' href='jsp/admin/plugins/appointment/ManageAppointmentSlots.jsp?view=viewAddComment&id_form=1' target="_blank" > <i class="glyphicon glyphicon-plus-sign"></i>Ajouter un commentaire</a>
+</@formGroup>
 </@row>
     <div class="clearfix"></div>
 <@row>
