@@ -164,7 +164,8 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         List<AppointmentDesk> listAppointmentDesks = AppointmentDeskHome.getAppointmentDesksList( );
         List<Place> listPlace = AppointmentDeskService.builListdPlace( listSlot, nIdForm, dateDay, appointmentDesk );
         Map<String, Object> model = getPaginatedListModel( request, MARK_APPOINTMENTDESK_LIST, listAppointmentDesks, JSP_MANAGE_APPOINTMENTDESKS );
-        List<Comment> listComment= CommentService.finListComments(java.sql.Date.valueOf(dateDay),java.sql.Date.valueOf(dateDay.plusDays(1)), nIdForm);
+        java.sql.Date dateSqlDaey= java.sql.Date.valueOf(dateDay);
+        List<Comment> listComment= CommentService.finListComments( dateSqlDaey, dateSqlDaey , nIdForm);
         
         model.put( MARK_LIST_COMMENTS, listComment);
         model.put( PARAMETER_NUMB_DESK, appointmentDesk );
