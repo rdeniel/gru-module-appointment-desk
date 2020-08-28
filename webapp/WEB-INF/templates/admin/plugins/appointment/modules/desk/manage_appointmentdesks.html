@@ -53,40 +53,42 @@ Commentaire du ${comment.startingValidityDate}: ${comment.comment!}
            
         </tr>
         <@tableHeadBodySeparator />
- <#list places as place >
+	
+	<#list places as place >
 
 
 	<#if place.slot.startingTime != bool >		
-          <tr>	
-	   <td>${place.slot.startingTime}
-	   </td>
-         </#if>
-		    <#if place.appointment ??>
-			<td>
-			<#if place.isSurbooking == false >
-				<#if place.isOpen == true && place.slot.isOpen ==true >
-				<a  href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > <i class="fa fa-unlock" ></i>  </a>
-
+        <tr>	
+	   		<td>${place.slot.startingTime}</td>
+    </#if>
+	<#if place.appointment ??>
+		<td>
+			<#if place.isSurbooking = false >
+				<#if place.isOpen = true && place.slot.isOpen = true >
+					<a href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > 
+						<i class="fa fa-unlock" ></i>  
+					</a>
 				</#if>
-				<span class="bg-warning">${place.appointment.user.lastName} ${place.appointment.user.firstName} </span>
+			
+					<span class="bg-warning">${place.appointment.user.lastName} ${place.appointment.user.firstName} </span>
+				
 			<#else>
-			<span class="bg-warning">${place.appointment.user.lastName} ${place.appointment.user.firstName} </span>
+				<span class="bg-warning">${place.appointment.user.lastName} ${place.appointment.user.firstName} </span>
 			</#if>
 			</td>
-		   <#elseif place.isSurbooking == true>
-			
-		   <#else>
-		    <td>
+	<#elseif place.isSurbooking = true >
+
+	<#else>
+		    <td colspan="fa-rotate-270">
 				
-				<#if place.isOpen == true && place.slot.isOpen ==true>
-				<a href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > <i class="fa fa-unlock" ></i>  </a>
-				<#elseif  place.slot.isOpen ==true>
-				
-				<a href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=openAppointmentDesk&id=${place.idAppointmentDesk}&day=${day}&id_form=${idForm}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > <i class="glyphicon glyphicon-lock" ></i>  </a>
+				<#if place.isOpen = true && place.slot.isOpen = true>
+					<a href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > <i class="fa fa-unlock" ></i>  </a>
+				<#elseif  place.slot.isOpen = true>
+					<a href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=openAppointmentDesk&id=${place.idAppointmentDesk}&day=${day}&id_form=${idForm}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > <i class="glyphicon glyphicon-lock" ></i>  </a>
 				</#if>
 			
 		    </td>
-		   </#if>
+	</#if>
 
 	<#assign bool=place.slot.startingTime >
 	<#if  place.slot.startingTime != bool>
