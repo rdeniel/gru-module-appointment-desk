@@ -35,6 +35,7 @@
 
 package fr.paris.lutece.plugins.appointment.modules.desk.web;
 
+import fr.paris.lutece.plugins.appointment.business.appointment.Appointment;
 import fr.paris.lutece.plugins.appointment.business.comment.Comment;
 import fr.paris.lutece.plugins.appointment.business.planning.WeekDefinition;
 import fr.paris.lutece.plugins.appointment.business.slot.Period;
@@ -43,9 +44,11 @@ import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDesk
 import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDeskHome;
 import fr.paris.lutece.plugins.appointment.modules.desk.service.AppointmentDeskService;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.Place;
+import fr.paris.lutece.plugins.appointment.service.AppointmentService;
 import fr.paris.lutece.plugins.appointment.service.CommentService;
 import fr.paris.lutece.plugins.appointment.service.SlotService;
 import fr.paris.lutece.plugins.appointment.service.WeekDefinitionService;
+import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFilterDTO;
 import fr.paris.lutece.portal.service.util.AppPathService;
 import fr.paris.lutece.portal.service.admin.AccessDeniedException;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
@@ -105,6 +108,9 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String MARK_DATE_DAY = "day";
     private static final String MARK_ID_FORM = "idForm";
     private static final String MARK_LIST_COMMENTS = "list_comments";
+    private static final String MARK_LIST_SLOT = "list_slot";
+    private static final String MARK_LIST_APPOINTMENT = "list_appointment";
+
 
     private static final String JSP_MANAGE_APPOINTMENTDESKS = "jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp";
 
@@ -167,8 +173,19 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         java.sql.Date dateSqlDaey= java.sql.Date.valueOf(dateDay);
         List<Comment> listComment= CommentService.finListComments( dateSqlDaey, dateSqlDaey , nIdForm);
         
+        AppointmentFilterDTO filter= new AppointmentFilterDTO ();
+        filter.setIdForm(nIdForm);
+        filter.setStartingDateOfSearch( java.sql.Date.valueOf( dateDay ) );
+        filter.setEndingDateOfSearch( java.sql.Date.valueOf( dateDay ) );
+        
+        
+		List<Appointment> listAppt = AppointmentService.findListAppointmentsByFilter(filter);
+        
         model.put( MARK_LIST_COMMENTS, listComment);
         model.put( PARAMETER_NUMB_DESK, appointmentDesk );
+        model.put( MARK_LIST_SLOT, listSlot);
+        model.put( MARK_LIST_APPOINTMENT, listAppt);
+
         model.put( MARK_LOCALE, getLocale( ) );
         model.put( PARAMETER_LIST_PLACE, listPlace );
         model.put( MARK_DATE_DAY, strDayDate );
