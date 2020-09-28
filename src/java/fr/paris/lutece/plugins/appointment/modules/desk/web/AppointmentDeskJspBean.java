@@ -103,7 +103,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS = "appointment-desk.manage_appointmentdesks.pageTitle";
 
     // Markers
-    private static final String MARK_APPOINTMENTDESK_LIST = "appointmentdesk_list";
+   // private static final String MARK_APPOINTMENTDESK_LIST = "appointmentdesk_list";
     private static final String MARK_LOCALE = "language";
     private static final String MARK_DATE_DAY = "day";
     private static final String MARK_ID_FORM = "idForm";

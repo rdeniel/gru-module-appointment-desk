@@ -1,120 +1,332 @@
+<#-- TODO Add id_form value to model -->
+
 <#include "manageappointmentdesk_tabs.html" />
-<@box>
-	<@boxHeader title='#i18n{appointment-desk.manage_appointmentdesk.title}' boxTools=true>
-		<@tform class='form-inline pull-right' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
-			<@button type='submit' name='view_createAppointmentDesk' buttonIcon='plus' title='#i18n{appointment-desk.manage_appointmentdesks.buttonAdd}' />
-		</@tform>
-	</@boxHeader>
-	<@boxBody>       
-    <@messages infos=infos />
-    <@paginationAdmin paginator=paginator combo=1 />
 <@row>
-<@tform class='' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
-<input type="hidden" name="id_form" value="${idForm!}">
-<@formGroup labelFor='day' labelKey=''>
+	<@columns>
+	<@messages infos=infos errors=errors />
+		<@box>
+			<@boxHeader title='#i18n{appointment.modifyAppointmentForm.title} : TITRE' />
+		</@box>
+	</@columns>
+</@row>
+<@row>
+    <@columns>
+		<!#-- FIXME USE MACRO  @ appointmentTabs tab="specificDay" appointmentform=appointmentform  -->
+		<@tabs>
+			<ul class="nav nav-tabs">
+				<li >
+					<a href="jsp/admin/plugins/appointment/ManageAppointmentSlots.jsp?view=manageTypicalWeek&id_form=1">
+						#i18n{appointment.typicalWeek.pageTitle}
+					</a>
+				</li>
+				<li >
+					<a href="jsp/admin/plugins/appointment/ManageAppointmentSlots.jsp?view=manageSpecificWeek&id_form=1">
+						#i18n{appointment.specificWeek.pageTitle}
+					</a>
+				</li>  	 
+				<!-- TODO -->				                          
+				<li class="active">
+					<a href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?plugin_name=appointment-desk&id_form=1">
+						#i18n{appointment.specificDay.pageTitle}
+					</a>
+				</li>  	 				                          
+			</ul>
+			<@tabContent>
+				<@box>
+					<@boxHeader title='#i18n{appointment-desk.manage_appointmentdesk.title}' boxTools=true>
+						<@tform class='form-inline pull-right' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
+						
+							<@button type='submit' name='view_createAppointmentDesk' buttonIcon='plus' title='#i18n{appointment-desk.manage_appointmentdesks.buttonAdd}' />
+						</@tform>
+					</@boxHeader>
+					<@boxBody>       
+					<@messages infos=infos />
+					<@row>
+						<@columns sm=4>
+							<@tform type='inline' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' class="pull-left">
+								<#assign dDay = day?date>
+								<#assign pDay = dDay?long - (1 * 24 * 60 * 60 * 1000)>
+								<input type="hidden" name="id_form" value="${idForm!1}">
+								<input type="hidden" name="day" value="${pDay?number_to_date}">
+								<@formGroup labelFor='day' labelKey=''>
+									<@button type='submit' size='lg' color='primary' name='view_manageAppointmentDesks' buttonIcon='angle-double-left' title="${pDay?number_to_date}" />
+								</@formGroup>
+							</@tform>
+							<@tform type='inline' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' class="visible-xs pull-right">
+								<#assign nDay = dDay?long + (1 * 24 * 60 * 60 * 1000)>
+								<input type="hidden" name="id_form" value="${idForm!1}">
+								<input type="hidden" name="day" value="${nDay?number_to_date}">
+								<@formGroup labelFor='day' labelKey='' rows=2>
+									<@button type='submit' size='lg' color='primary' name='view_manageAppointmentDesks' buttonIcon='angle-double-right' iconPosition='right' title="${nDay?number_to_date}" />
+								</@formGroup>
+							</@tform>
+						</@columns>
+						<@columns sm=6 class='text-center'>
+								<@tform  id='manage_appointmentdesk'  name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
+									<input type="hidden" name="id_form" value="${idForm!1}">
+									<@formGroup labelFor='dayi' labelKey='' >
+										<@inputGroup>
+											<@inputGroupItem type='addon'>
+												<@icon style='calendar' />
+											</@inputGroupItem>
+											<@input type='text' size='lg' name='day' id='day' value="${day!''}"  />
+										</@inputGroup>
+									</@formGroup>
+								</@tform>
+								<@row>
+									<#if list_comments?size gt 0>
+										<@columns xs=12 sm=10>
+											<@card>
+												<#list list_comments as comment>
+													<p class="text-left">#i18n{appointment.manage_comments.pageTitle} ${comment.startingValidityDate}: ${comment.comment!}</p>
+												</#list>
+											</@card>
+										</@columns>
+										<@columns xs=2 sm=2>	
+											<@aButton href='jsp/admin/plugins/appointment/ManageAppointmentSlots.jsp?view=viewAddComment&id_form=1' class='btn-iframe'  title='#i18n{appointment.manage_comments.buttonAdd}' buttonIcon='plus-circle' color='primary btn-lg' />
+										</@columns>
+									<#else>
+										<@columns xs=12 sm=12>	
+											<@aButton href='jsp/admin/plugins/appointment/ManageAppointmentSlots.jsp?view=viewAddComment&id_form=1' class='btn-iframe'  title='#i18n{appointment.manage_comments.buttonAdd}' buttonIcon='plus-circle' color='primary btn-lg' />
+										</@columns>
+									</#if>
+								</@row>					
+							</@columns>
+							<@columns sm=2 class='text-right'>
+								<@tform type='inline' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' class='hidden-xs'>
+								<#assign nDay = dDay?long + (1 * 24 * 60 * 60 * 1000)>
+								<input type="hidden" name="id_form" value="${idForm!1}">
+								<input type="hidden" name="day" value="${nDay?number_to_date}">
+								<@formGroup labelFor='day' labelKey='' rows=2>
+									<@button type='submit' size='lg' color='primary' name='view_manageAppointmentDesks' buttonIcon='angle-double-right' iconPosition='right' title="${nDay?number_to_date}" />
+								</@formGroup>
+								</@tform>
+							</@columns>
+						</@row>
+						<@table id='selectable' class="clearfix">
+						<tr>
+							<th></th>
+							<#assign x=numb_desk>
+							<#assign bool="00:00" >
+							<#list 1..x as seq >
+								<th data-selectable="column">Guichet: ${seq}</th>
+							</#list>
+							<th data-selectable="column" class="bg-danger">Surbooking</th>
+						</tr>
+						<@tableHeadBodySeparator />
+						<#list places as place >
+							<#if place.slot.startingTime != bool >	
+							<#if bool !="00:00">
+								</tr>
+							</#if>
+							<#assign bool=place.slot.startingTime >
+								<tr>
+								<td>${place.slot.startingTime}</td>
+							</#if>
+								<td <#if place.appointment??>data-rdv="rdv${place.appointment.idAppointment!}_slot${place.slot.idSlot!}"</#if> class="place <#if place.appointment??><#if place.isSurbooking = false > <#if place.isOpen = true && place.slot.isOpen = true > slot-open selectable</#if></#if><#elseif place.isSurbooking = true> slot-surbooking<#else><#if place.isOpen = true && place.slot.isOpen = true> slot-open selectable<#elseif place.slot.isOpen = true> slot-close</#if></#if>">
+								<#if place.appointment??>
+									<#if place.isSurbooking = false >
+										<#if place.isOpen = true && place.slot.isOpen = true >
+											<a class="bt-slot" href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm!1}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > 
+												<i class="fa fa-unlock fa-fw" ></i>  
+											</a>
+										</#if>
+									</#if>
+									<span data-rdvslot="rdv${place.appointment.idAppointment!}_slot${place.slot.idSlot!}">
+										<!-- Slot : ${place.slot.idSlot!} <br> Appointment : ${place.appointment.idAppointment!}  -->
+										${place.appointment.user.lastName} ${place.appointment.user.firstName}
+										( nb pers. ${place.appointment.nbPlaces} )
+									</span>
+								<#else>
+									<#if place.isOpen = true && place.slot.isOpen = true>
+										<a class="bt-slot" href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm!1}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > 
+											<i class="fa fa-unlock fa-fw" ></i>  
+										</a>
+									<#elseif place.slot.isOpen = true>
+										<a class="bt-slot" href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=openAppointmentDesk&id=${place.idAppointmentDesk}&day=${day}&id_form=${idForm!1}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > 
+											<i class="fa fa-lock fa-fw" ></i>  
+										</a>
+									</#if>
+								</#if>
+								</td>
+						</#list>
+					</@table>
+					<@paginationAdmin paginator=paginator />
+					</@boxBody>
+				</@box>
+			</@tabContent>
+		</@tabs>
+    </@columns>
+</@row>
 
-	<@inputGroup>
-
-		<@input type='text' name='day' id='day' value="${day!''}" />
-		<@inputGroupItem type='addon'>
-		<@icon style='calendar' />
-		<@button type='submit' name='view_manageAppointmentDesks' buttonIcon='search' title='' />
-		</@inputGroupItem>
-
-	</@inputGroup>
-
-</@formGroup>
-
-
-</@tform>
-
-<@formGroup labelFor='day' labelKey=''>
-<#list list_comments as comment>
-<div class="bg-warning">
-Commentaire du ${comment.startingValidityDate}: ${comment.comment!}
+<div class="modal fade" id="qModal" tabindex="-1" role="dialog" aria-labelledby="qModalLabel">
+    <div class="modal-dialog modal-lg" role="document" >
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn btn-link pull-right" data-dismiss="modal" aria-label="#i18n{blog.create_blog.labelCollapse}">
+                  <i class="fa fa-remove" aria-hidden="true"></i>
+                </button>
+                <h4 class="modal-title" id="qModalLabel">#i18n{blog.create_blog.labelPreview}</h4>
+            </div>
+            <div class="modal-body">
+                <p id="loader" class="text-center">
+                    <i class="fa fa-circle-o-notch fa-spin fa-5x fa-fw"></i>
+                    <span class="sr-only">#i18n{blog.modify_blog.labelLoading}</span>
+                </p>
+                <iframe style="width:100%;height:60vh;border:0" frameborder="0" id="qModalFrame" src=""></iframe>
+            </div>
+         
+        </div>
+    </div>
 </div>
 
-</#list>
-<a rel='stylesheet' href='jsp/admin/plugins/appointment/ManageAppointmentSlots.jsp?view=viewAddComment&id_form=1' target="_blank" > <i class="glyphicon glyphicon-plus-sign"></i>Ajouter un commentaire</a>
-</@formGroup>
-</@row>
-    <div class="clearfix"></div>
-<@row>
-    <@table>
-        <tr>
-            <input type="hidden" id="id" name="id"/>
-	<th></th>
-	<#assign x=numb_desk>
-	<#assign bool="00:00" >
-	<#list 1..x as seq >
-            <th>Guichet: ${seq}</th>
-	</#list>
-            <th style="background-color:red;" >Surbooking</th>
-           
-        </tr>
-        <@tableHeadBodySeparator />
+<script src="js/bootstrap-datepicker.js"></script>
+<script src="js/plugins/appointment/selectable.js"></script>
+<script src="js/plugins/appointment/selectable.table.min.js"></script>
+<script src="js/locales/bootstrap-datepicker.<@getRegional language=language />.js" charset="utf-8"></script>
+<script>
+function getAjax( url, success) {
+    var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
+    xhr.open('GET', url);
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState>3 && xhr.status==200) success(xhr.responseText);
+    };
+    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+    xhr.send();
+    return xhr;
+}
+
+
+if( $('.selectable').length > 0 ){
+
+	const table = document.querySelector("table");
+	const selectable = new Selectable({
+		appendTo: table,
+		filter: table.querySelectorAll(".selectable"),
+		toggle: true,
+		saveState: 10	
+	});
+	selectable.table();
 	
-	<#list places as place >
+	selectable.on("end", function(e, selected, unselected) {
+		const a=selectable.getSelectedNodes();
+		a.forEach( function( el ){
+			const murl = el.childNodes[1].href;
+			console.log( murl );
+			/* Ajax todo 		*/	
+			getAjax( murl , function(data){ console.log( data )  });
+		});
+		window.location.reload( );
+		// console.log( selectable.getSelectedNodes() );
+	});
+}
+	
+$(function () {
+	$('.bt-slot > .fa').toggle();
+	$('#day').datepicker({
+		language : '${language}',
+		weekStart : 1,
+		todayBtn : true,
+		todayHighLight : true,
+		autoclose : true
+	}).on( 'changeDate', function(e) {
+		// `e` here contains the extra attributes
+		$('#manage_appointmentdesk').submit();
+	});
+
+	$('#qModal').on('shown.bs.modal', function () {
+		$('#qModalFrame').attr("src", urlPublished );
+		$('#qModalFrame').load( function () {
+		$('#qModalFrame').show();
+		$('#loader').hide();
+		});
+	});
+
+	$('#qModal').on('hide.bs.modal', function () {
+		window.location.replace( window.location.href + '?id_form=1&day=${day!}' );
+	});
+	   
+	$(".btn-iframe").click( function(e){
+		e.preventDefault();
+		urlPublished= $(this).attr("href");
+		$('#qModal').modal({ show: true })
+	});
 
 
-	<#if place.slot.startingTime != bool >		
-        <tr>	
-	   		<td>${place.slot.startingTime}</td>
-    </#if>
-	<#if place.appointment ??>
-		<td>
-			<#if place.isSurbooking = false >
-				<#if place.isOpen = true && place.slot.isOpen = true >
-					<a href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > 
-						<i class="fa fa-unlock" ></i>  
-					</a>
-				</#if>
-			
-					<span class="bg-warning">${place.appointment.user.lastName} ${place.appointment.user.firstName} </span>
-				
+});  
+
+<#list list_appointment as app>
+	<#if app.slot?size gt 1>
+		<#list app.slot as appSlot>
+			<#if appSlot = app.slot?first>
+				$('[data-rdv^="rdv"]').css('background-color','gray').css('color','white').css('border-bottom-color','gray');
 			<#else>
-				<span class="bg-warning">${place.appointment.user.lastName} ${place.appointment.user.firstName} </span>
+				$('[data-rdvslot="rdv${app.idAppointment}_slot${appSlot.idSlot!}"]').toggle();
 			</#if>
-			</td>
-	<#elseif place.isSurbooking = true >
-
-	<#else>
-		    <td colspan="fa-rotate-270">
-				
-				<#if place.isOpen = true && place.slot.isOpen = true>
-					<a href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > <i class="fa fa-unlock" ></i>  </a>
-				<#elseif  place.slot.isOpen = true>
-					<a href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=openAppointmentDesk&id=${place.idAppointmentDesk}&day=${day}&id_form=${idForm}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > <i class="glyphicon glyphicon-lock" ></i>  </a>
-				</#if>
-			
-		    </td>
+			$('[data-rdv="rdv${app.idAppointment}_slot${appSlot.idSlot!}"]').css('border-right','1rem solid green');
+		</#list>
 	</#if>
-
-	<#assign bool=place.slot.startingTime >
-	<#if  place.slot.startingTime != bool>
-          </tr>
-	</#if>
-
 </#list>
-    
-</@table>
-</@row>
-    <@paginationAdmin paginator=paginator />
-
-
-  </@boxBody>
-</@box>
-<script src="js/jquery/plugins/ui/jquery-ui-1.9.2.custom.min.js"></script>
-<@getDatePickerBootstrap idField="dateAppointment" language="${language}" />
-<script type="text/javascript">
-    $(function () {
-        
-        $('#day').datepicker({
-        language : '${language}',
-        weekStart : 1,
-        todayBtn : true,
-        todayHighLight : true,
-        autoclose : true
-    });
-    });      
 </script>
+<style>
+#selectable{
+	width: 90vw;
+	margin: 0 auto;
+	
+}
+
+#selectable td.ui-selected, 
+#selectable td.ui-selected a {
+	background-color: #00f829 !important;
+}
+
+#selectable td{
+	padding: 0;
+	vertical-align: middle;
+	border-top-color: transparent;
+}
+
+#selectable td:first-child{
+	padding: 0 1em;
+}
+
+#selectable .place{
+	width:${(100/(x+1))?string['0']}%;
+}
+
+.ui-lasso {
+	display: none;
+}
+
+#selectable .selectable > a,
+#selectable .selectable > span{
+	padding: 1rem;
+	font-size: 1rem;
+}
+
+/* EXTRA CSS 	*/
+.place{
+	border-left: 5px solid transparent;
+	
+}
+
+.bt-slot{
+	min-height: 1rem;
+	display: inline-block;
+	padding: 0;
+	margin: 0
+}
+
+.place.slot-open{
+	border-left-color: #00f829;
+}
+
+.place.slot-close{
+	border-left-color: #ff9102 !important;
+}
+
+.place.slot-surbooking{
+	border-left-color: #f8000c;	
+	background-color: rgba(248, 0, 12, 0.26);
+}
+</style>
