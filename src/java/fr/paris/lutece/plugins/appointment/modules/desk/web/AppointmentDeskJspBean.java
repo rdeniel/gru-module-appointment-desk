@@ -40,22 +40,32 @@ import fr.paris.lutece.plugins.appointment.business.comment.Comment;
 import fr.paris.lutece.plugins.appointment.business.planning.WeekDefinition;
 import fr.paris.lutece.plugins.appointment.business.slot.Period;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
+import fr.paris.lutece.plugins.appointment.business.user.User;
 import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDesk;
 import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDeskHome;
 import fr.paris.lutece.plugins.appointment.modules.desk.service.AppointmentDeskService;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.Place;
+import fr.paris.lutece.plugins.appointment.service.AppointmentResourceIdService;
 import fr.paris.lutece.plugins.appointment.service.AppointmentService;
 import fr.paris.lutece.plugins.appointment.service.CommentService;
 import fr.paris.lutece.plugins.appointment.service.SlotService;
 import fr.paris.lutece.plugins.appointment.service.WeekDefinitionService;
 import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFilterDTO;
+import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFormDTO;
+import fr.paris.lutece.portal.service.util.AppLogService;
 import fr.paris.lutece.portal.service.util.AppPathService;
 import fr.paris.lutece.portal.service.admin.AccessDeniedException;
+import fr.paris.lutece.portal.service.admin.AdminUserService;
+import fr.paris.lutece.portal.service.i18n.I18nService;
+import fr.paris.lutece.portal.service.rbac.RBACService;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.View;
 import fr.paris.lutece.util.date.DateUtil;
+import fr.paris.lutece.util.json.JsonResponse;
+import fr.paris.lutece.util.json.JsonUtil;
 import fr.paris.lutece.util.url.UrlItem;
+import net.sf.json.JSONObject;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -72,6 +82,13 @@ import java.util.NoSuchElementException;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang3.StringUtils;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 
 /**
  * This class provides the user interface to manage AppointmentDesk features ( manage, create, modify, remove )
@@ -94,23 +111,24 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PARAMETER_STARTING_DATE_TIME = "starting_date_time";
     private static final String PARAMETER_ENDING_DATE_TIME = "ending_date_time";
     private static final String PARAMETER_IS_OPEN = "is_open";
-    private static final String PARAMETER_IS_SPECIFIC = "is_specific";
-    private static final String PARAMETER_MAX_CAPACITY = "max_capacity";
-    private static final String PARAMETER_ID_SLOT = "id_slot";
+    private static final String PARAMETER_DATA = "data";
+
+    
 
 
     // Properties for page titles
     private static final String PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS = "appointment-desk.manage_appointmentdesks.pageTitle";
 
     // Markers
-   // private static final String MARK_APPOINTMENTDESK_LIST = "appointmentdesk_list";
+    private static final String MARK_APPOINTMENTDESK_LIST = "appointmentdesk_list";
     private static final String MARK_LOCALE = "language";
     private static final String MARK_DATE_DAY = "day";
     private static final String MARK_ID_FORM = "idForm";
     private static final String MARK_LIST_COMMENTS = "list_comments";
     private static final String MARK_LIST_SLOT = "list_slot";
     private static final String MARK_LIST_APPOINTMENT = "list_appointment";
-
+    
+    
 
     private static final String JSP_MANAGE_APPOINTMENTDESKS = "jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp";
 
@@ -129,6 +147,12 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     // Infos
     private static final String INFO_APPOINTMENTDESK_CREATED = "module.appointment.desk.info.appointmentdesk.created";
     private static final String INFO_APPOINTMENTDESK_REMOVED = "module.appointment.desk.info.appointmentdesk.removed";
+    
+    private static final String JSON_KEY_ERROR = "error";
+    private static final String JSON_KEY_SUCCESS = "success";
+
+    private static final String  PROPERTY_MESSAGE_ERROR_PARSING_JSON = "module.appointment.desk.error.parsing.json";
+    private static final String PROPERTY_MESSAGE_ERROR_ACCESS_DENIED = "module.appointment.desk.error.access.denied";
 
     // Session variable to store working values
     private AppointmentDesk _appointmentdesk;
@@ -201,26 +225,45 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
      *            The Http Request
      * @return The Jsp URL of the process result
      * @throws AccessDeniedException
+     * @throws JsonProcessingException 
+     * @throws JsonMappingException 
      */
     @Action( ACTION_CLOSE_APPOINTMENTDESK )
-    public String docloseAppointmentDesk( HttpServletRequest request ) throws AccessDeniedException
+    public String docloseAppointmentDesk( HttpServletRequest request ) 
     {
-        populate( _appointmentdesk, request, getLocale( ) );
-        String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
+		JSONObject json = new JSONObject( );
+    	String strJson= request.getParameter( PARAMETER_DATA );
+    	ObjectMapper mapper = new ObjectMapper( );
+    	mapper.registerModule(new JavaTimeModule());
+        mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        AppLogService.debug( "appointmentDesk - Received strJson : " + strJson); 
+        
+         List<Slot> listSlots;
+        try {
+        	listSlots= mapper.readValue(strJson, new TypeReference<List<Slot>>(){});
+        
+        } catch ( JsonProcessingException e ) {
 
-        // Check constraints
-        if ( !validateBean( _appointmentdesk, VALIDATION_ATTRIBUTES_PREFIX ) )
-        {
-            return redirectView( request, VIEW_MANAGE_APPOINTMENTDESKS );
-        }
+            AppLogService.error( PROPERTY_MESSAGE_ERROR_PARSING_JSON + e.getMessage(), e );
+            json.element( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) ) );
 
-        AppointmentDeskService.closeAppointmentDesk(_appointmentdesk, getSlot( request) );
-        addInfo( INFO_APPOINTMENTDESK_CREATED, getLocale( ) );
-        UrlItem url = new UrlItem( AppPathService.getBaseUrl( request ) + JSP_MANAGE_APPOINTMENTDESKS );
-        url.addParameter( PARAMETER_DATE_DAY, strDayDate );
-        url.addParameter( PARAMETER_ID_FORM, _appointmentdesk.getIdForm( ) );
+        	return json.toString( );
+   		}
+         
+         if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, Integer.toString(listSlots.get(0).getIdForm()), AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
+     			getUser( ) ) )
+         {
+        	 AppLogService.error( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM, new AccessDeniedException( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM ));
+ 	         json.element( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
 
-        return redirect( request, url.getUrl( ) );
+ 	         return json.toString( ); 
+ 	     }
+
+         AppointmentDeskService.closeAppointmentDesk(listSlots);
+
+         json.element(JSON_KEY_SUCCESS, JSON_KEY_SUCCESS);
+         return json.toString( );         
+       
     }
 
     /**
@@ -230,81 +273,46 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
      *            The Http request
      * @return The Jsp URL of the process result
      * @throws AccessDeniedException
+     * @throws JsonProcessingException 
+     * @throws JsonMappingException 
      */
     @Action( ACTION_OPEN_APPOINTMENTDESK )
-    public String doOpenAppointmentDesk( HttpServletRequest request ) throws AccessDeniedException
+    public String doOpenAppointmentDesk( HttpServletRequest request ) 
     {
-        int nId = Integer.parseInt( request.getParameter( PARAMETER_ID_APPOINTMENTDESK ) );
-        String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
-        String strIdForm = request.getParameter( PARAMETER_ID_FORM );
+		JSONObject json = new JSONObject( );
+    	String strJson= request.getParameter(PARAMETER_DATA);
+        AppLogService.debug( "appointmentDesk - Received strJson : " + strJson); 
+   	    ObjectMapper mapper = new ObjectMapper( );
+        mapper.configure( DeserializationFeature.UNWRAP_ROOT_VALUE, true );
+        mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
+        
+        List<Slot> listSlots;
+		try {
+			
+			listSlots = mapper.readValue(strJson, new TypeReference<List<Slot>>(){});
+		
+		} catch ( JsonProcessingException e ) {
 
-        AppointmentDeskService.openAppointmentDesk(nId, getSlot( request ));
-        addInfo( INFO_APPOINTMENTDESK_REMOVED, getLocale( ) );
-        UrlItem url = new UrlItem( AppPathService.getBaseUrl( request ) + JSP_MANAGE_APPOINTMENTDESKS );
+	    	AppLogService.error( PROPERTY_MESSAGE_ERROR_PARSING_JSON + e.getMessage(), e );
+	        json.element( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_PARSING_JSON, getLocale( ) ) );
 
-        url.addParameter( PARAMETER_DATE_DAY, strDayDate );
-        url.addParameter( PARAMETER_ID_FORM, strIdForm );
+	        return json.toString( );
+		}
 
-        return redirect( request, url.getUrl( ) );
-    }
+        if ( !RBACService.isAuthorized( AppointmentFormDTO.RESOURCE_TYPE, Integer.toString(listSlots.get(0).getIdForm()), AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM,
+    			getUser( ) ) )
+        {
+        	AppLogService.error( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM, new AccessDeniedException( AppointmentResourceIdService.PERMISSION_MODIFY_ADVANCED_SETTING_FORM ));
+	        json.element( JSON_KEY_ERROR, I18nService.getLocalizedString( PROPERTY_MESSAGE_ERROR_ACCESS_DENIED, getLocale( ) ) );
 
-    /**
-     * Populate a bean AppointmentDesk
-     * 
-     * @param bean
-     *            the bean
-     * @param request
-     *            the request
-     * @param locale
-     *            the local
-     */
-    private void populate( AppointmentDesk appointmentDesk, HttpServletRequest request, Locale locale )
-    {
-
-        String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
-        String strIdForm = request.getParameter( PARAMETER_ID_FORM );
-        String strClosingTime = request.getParameter( PARAMETER_CLOSING_TIME );
-        String strOpeningTime = request.getParameter( PARAMETER_OPENING_TIME );
-        String strDeskNumber = request.getParameter( PARAMETER_NUMB_DESK );
-
-        Date dateofDay = DateUtil.formatDate( strDayDate, locale );
-        LocalDate dateDay = dateofDay.toInstant( ).atZone( ZoneId.systemDefault( ) ).toLocalDate( );
-
-        appointmentDesk.setDay( dateDay );
-        appointmentDesk.setIdForm( Integer.parseInt( strIdForm ) );
-        appointmentDesk.setEndClosing( LocalTime.parse( strClosingTime ) );
-        appointmentDesk.setStartClosing( LocalTime.parse( strOpeningTime ) );
-        appointmentDesk.setDeskNumber( Integer.parseInt( strDeskNumber ) );
+	        return json.toString( );
+             
+        }
+        
+        AppointmentDeskService.openAppointmentDesk(listSlots);
+        
+        json.element(JSON_KEY_SUCCESS, JSON_KEY_SUCCESS);
+        return json.toString( );
 
     }
-    /**
-     * Get and build the slot 
-     * @param request the request
-     * @return the slot builded
-     */
-    private Slot getSlot(HttpServletRequest request) {
-    	
-	   	 int nIdSlot = Integer.parseInt( request.getParameter( PARAMETER_ID_SLOT ) );
-	     int nIdForm = Integer.parseInt( request.getParameter( PARAMETER_ID_FORM ));
-	     Slot slot= null;
-
-	        // If nIdSlot == 0, the slot has not been created yet
-	        if ( nIdSlot == 0 )
-	        {
-	            // Need to get all the informations to create the slot
-	            LocalDateTime startingDateTime = LocalDateTime.parse( request.getParameter( PARAMETER_STARTING_DATE_TIME ) );
-	            LocalDateTime endingDateTime = LocalDateTime.parse( request.getParameter( PARAMETER_ENDING_DATE_TIME ) );
-	            boolean bIsOpen = Boolean.parseBoolean( request.getParameter( PARAMETER_IS_OPEN ) );
-	            boolean bIsSpecific = Boolean.parseBoolean( request.getParameter( PARAMETER_IS_SPECIFIC ) );
-	            int nMaxCapacity = Integer.parseInt( request.getParameter( PARAMETER_MAX_CAPACITY ) );
-	            slot = SlotService.buildSlot( nIdForm, new Period( startingDateTime, endingDateTime ), nMaxCapacity, nMaxCapacity, nMaxCapacity, 0, bIsOpen,
-	                    bIsSpecific );
-	        }
-	        else
-	        {
-	            slot = SlotService.findSlotById( nIdSlot );
-	        }
-	        return slot;
-   }
-
 }
