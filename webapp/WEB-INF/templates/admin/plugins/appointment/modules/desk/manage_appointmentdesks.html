@@ -103,59 +103,37 @@
 								</@tform>
 							</@columns>
 						</@row>
+
 						<@table id='selectable' class="clearfix">
 						<tr>
 							<th></th>
 							<#assign x=numb_desk>
-							<#assign bool="00:00" >
+							
 							<#list 1..x as seq >
 								<th data-selectable="column">Guichet: ${seq}</th>
 							</#list>
 							<th data-selectable="column" class="bg-danger">Surbooking</th>
 						</tr>
-						<@tableHeadBodySeparator />
-						<#list places as place >
-							<#if place.slot.startingTime != bool >	
-							<#if bool !="00:00">
-								</tr>
-							</#if>
-							<#assign bool=place.slot.startingTime >
+							<@tableHeadBodySeparator />
+							
+							<#list list_slot as slot>
 								<tr>
-								<td>${place.slot.startingTime}</td>
-							</#if>
-								<td <#if place.appointment??>data-rdv="rdv${place.appointment.idAppointment!}_slot${place.slot.idSlot!}"</#if> class="place <#if place.appointment??><#if place.isSurbooking = false > <#if place.isOpen = true && place.slot.isOpen = true > slot-open selectable</#if></#if><#elseif place.isSurbooking = true> slot-surbooking<#else><#if place.isOpen = true && place.slot.isOpen = true> slot-open selectable<#elseif place.slot.isOpen = true> slot-close</#if></#if>">
-								<#if place.appointment??>
-									<#if place.isSurbooking = false >
-										<#if place.isOpen = true && place.slot.isOpen = true >
-											<a class="bt-slot" href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm!1}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > 
-												<i class="fa fa-unlock fa-fw" ></i>  
-											</a>
-										</#if>
-									</#if>
-									<span data-rdvslot="rdv${place.appointment.idAppointment!}_slot${place.slot.idSlot!}">
-										<!-- Slot : ${place.slot.idSlot!} <br> Appointment : ${place.appointment.idAppointment!}  -->
-										${place.appointment.user.lastName} ${place.appointment.user.firstName}
-										( nb pers. ${place.appointment.nbPlaces} )
-									</span>
-								<#else>
-									<#if place.isOpen = true && place.slot.isOpen = true>
-										<a class="bt-slot" href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=closeAppointmentDesk&id_form=${idForm!1}&day=${day}&numb_desk=${place.numberDesk}&start_closing=${place.slot.startingTime}&end_closing=${place.slot.endingTime}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > 
-											<i class="fa fa-unlock fa-fw" ></i>  
-										</a>
-									<#elseif place.slot.isOpen = true>
-										<a class="bt-slot" href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=openAppointmentDesk&id=${place.idAppointmentDesk}&day=${day}&id_form=${idForm!1}&id_slot=${place.slot.idSlot}&starting_date_time=${place.slot.startingDateTime}&ending_date_time=${place.slot.endingDateTime}&is_open=${place.slot.isOpen?c}&is_specific=${place.slot.isSpecific?c}&max_capacity=${place.slot.maxCapacity}" > 
-											<i class="fa fa-lock fa-fw" ></i>  
-										</a>
-									</#if>
-								</#if>
-								</td>
-						</#list>
-					</@table>
+									<td style="width:2%" data-selectable="row">${slot.startingTime!}</td>	
+									<#list 1..x as seq >
+										<td id="slot-${slot.idSlot!}-desk${x-seq+1!}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idslot':${slot.idSlot!},'startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':${slot.maxCapacity},'isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':${slot.isSpecific?c},'idForm':${slot.idForm!1},'desk':'${seq}'}" >
+										</td>	
+									</#list>
+									<td id="slot-${slot.idSlot!}-desk${x+1!}" class="bg-danger" data-slot="" >
+								</tr>
+								 
+							</#list>
+						</@table>
 					<@paginationAdmin paginator=paginator />
 					</@boxBody>
 				</@box>
 			</@tabContent>
 		</@tabs>
+		<hr>
     </@columns>
 </@row>
 
@@ -180,44 +158,97 @@
     </div>
 </div>
 
+<@modal id='slottoggle'>
+	<@modalBody>
+		<@radioButton id='doOpenSlot' name='doManageSlot' value='1' labelKey='Ouvrir' /> 
+		<@radioButton id='doCloseSlot' name='doManageSlot'  value='0' labelKey='Fermer' /> 
+		<@button id='saveSlotState' color='primary' title='Enregistrer' />
+		<@button id='cancelSlotState' color='secondary' title='Annuler' params=' data-dismiss="modal" aria-label="Close"' />
+	</@modalBody>
+</@modal>
+
 <script src="js/bootstrap-datepicker.js"></script>
+<script src="js/locales/bootstrap-datepicker.<@getRegional language=language />.js" charset="utf-8"></script>
+
 <script src="js/plugins/appointment/selectable.js"></script>
 <script src="js/plugins/appointment/selectable.table.min.js"></script>
-<script src="js/locales/bootstrap-datepicker.<@getRegional language=language />.js" charset="utf-8"></script>
 <script>
-function getAjax( url, success) {
-    var xhr = window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject('Microsoft.XMLHTTP');
-    xhr.open('GET', url);
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState>3 && xhr.status==200) success(xhr.responseText);
-    };
-    xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-    xhr.send();
-    return xhr;
-}
-
 
 if( $('.selectable').length > 0 ){
-
 	const table = document.querySelector("table");
 	const selectable = new Selectable({
 		appendTo: table,
 		filter: table.querySelectorAll(".selectable"),
 		toggle: true,
-		saveState: 10	
+		saveState: 10,
+		lasso: {
+			border: "4px dotted rgba( 0, 248, 41, 1)",
+			borderRadius: "0",
+			backgroundColor: "rgba(0, 248, 41, 0.5)"
+		}	
 	});
 	selectable.table();
 	
 	selectable.on("end", function(e, selected, unselected) {
+		var slotData='', idx=1;
 		const a=selectable.getSelectedNodes();
+		const slotSize = a.length;
 		a.forEach( function( el ){
-			const murl = el.childNodes[1].href;
-			console.log( murl );
-			/* Ajax todo 		*/	
-			getAjax( murl , function(data){ console.log( data )  });
+			slotData = slotData + el.dataset.slot;
+			if( idx < slotSize ) slotData = slotData + ','
+			idx++; 
 		});
-		window.location.reload( );
-		// console.log( selectable.getSelectedNodes() );
+
+		slotData = '[' +  slotData.replace(/\'/ig,'"') + ']';
+		// console.log( slotSize +  '|' + slotData );
+		// Show Modal
+		$('#slottoggle').modal('toggle');
+		$('#slottoggle').on('shown.bs.modal', function (event) {
+			var modal = $(this), btnModal = modal.find('#saveSlotState'), action='', jspUrl = 'jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=', filteredSlotData=null; 
+			btnModal.click( function( e ){
+				var isOpen = modal.find('.modal-body #doOpenSlot:checked').val();
+				var JData = JSON.parse( slotData );
+				console.log( 'isOpen : ' + isOpen);
+				/* Ajax 		*/	
+				if( isOpen ){
+					action = 'closeAppointmentDesk';
+					filteredSlotData = JData.filter( function (slot) {
+						return slot.isOpen === 'false';
+					});
+				} else {
+					action = 'openAppointmentDesk';
+					filteredSlotData = JData.filter( function (slot) {
+						return slot.isOpen === 'true';
+					});
+				}
+				
+				$.ajax({
+					url: jspUrl + action,
+					dataType: 'json',
+					type: 'POST',
+					cache: false,
+					data: JSON.stringify( filteredSlotData ),
+					contentType: 'application/json',
+					success: function( data, textStatus, jQxhr ){
+						console.log( JSON.stringify( data ) );
+					},
+					error: function( jqXhr, textStatus, errorThrown ){
+						console.log( errorThrown );
+					},
+					xhrFields: {
+							withCredentials: true
+					},
+					crossDomain: true
+				});
+				$('#manage_appointmentdesk').submit();
+			});
+		});
+
+		$('#slottoggle').on('hidden.bs.modal', function (event) {
+			selectable.clear()
+		});
+		
+		console.log( selectable.getSelectedNodes() );
 	});
 }
 	
@@ -251,33 +282,84 @@ $(function () {
 		urlPublished= $(this).attr("href");
 		$('#qModal').modal({ show: true })
 	});
-
-
 });  
+
+function getSortedHash(inputHash){
+  var resultHash = {};
+
+  var keys = Object.keys(inputHash);
+  keys.sort(function(a, b) {
+    return inputHash[a] - inputHash[b]
+  }).forEach(function(k) {
+    resultHash[k] = inputHash[k];
+  });
+  return resultHash;
+}
+
+<#if list_appointment?? && list_appointment?size gt 0>
+	<#assign lastApp=list_appointment?last >
+	var strRdv='[<#list list_appointment?sort_by('nbPlaces')?reverse as app><#list app.slot?sort_by('startingDateTime') as slotApp>{"rdv":${app.idAppointment},"nbPerson":${app.nbPlaces},"slot":${slotApp.idSlot},"dtSlotBegin":${slotApp.startingDateTime},"dtSlotEnd":${slotApp.endingDateTime}}<#if lastApp.idAppointment!=app.idAppointment>,</#if></#list></#list>]';
+</#if>
+var strSlots='<#list list_appointment as app><#list app.slot as slotApp>${slotApp.idSlot},</#list></#list>';
+strSlots = strSlots.slice(0, -1);
+var aSlots = strSlots.split(',');
+const countOccurrences = (aSlots) => {
+    const map = {};
+    for ( var i = 0; i < aSlots.length; i++ ) {
+        map[aSlots[i]] = ~~map[aSlots[i]] + 1;
+    }
+    return map;
+}
+
+var nSurbook=0;
+const mapSlots = countOccurrences(aSlots);
+<#assign currRdv=0>
+<#list list_appointment?sort_by('nbPlaces')?reverse as app>
+	<#list app.slot?sort_by('startingDateTime') as slotApp>
+		<#if currRdv!=app.idAppointment>
+			var pos = mapSlots['${slotApp.idSlot}'];
+			if( pos > ${numb_desk} ){ 
+				nSurbook=pos;
+				pos=${numb_desk}; 
+			}
+		</#if>
+		
+		if( pos == 0){  pos=nSurbook }	
+		console.log( '${app.user.lastName} ${app.user.firstName} - Slot ${slotApp.idSlot} pos : ' + pos );
+		var slotIdFilter='[id^=slot-${slotApp.idSlot}-desk' + pos + ']';
+		var slotId='[id^=slot-${slotApp.idSlot}-desk' + pos;
+		$( slotIdFilter ).attr('data-rdv','rdv${app.idAppointment}_slot${slotApp.idSlot!}');
+		$( slotId ).html('<span> ${app.user.lastName} ${app.user.firstName} <#if app.nbPlaces gt 1>( nb pers. ${app.nbPlaces} )</#if> </span>');
+		
+		mapSlots['${slotApp.idSlot}'] = pos - 1;
+		
+		<#assign currRdv=app.idAppointment>	
+	</#list>
+</#list>
+
 
 <#list list_appointment as app>
 	<#if app.slot?size gt 1>
 		<#list app.slot as appSlot>
-			<#if appSlot = app.slot?first>
-				$('[data-rdv^="rdv"]').css('background-color','gray').css('color','white').css('border-bottom-color','gray');
-			<#else>
-				$('[data-rdvslot="rdv${app.idAppointment}_slot${appSlot.idSlot!}"]').toggle();
+			$('[data-rdv="rdv${app.idAppointment}_slot${appSlot.idSlot!}"]').css('background-color','#6d015b');
+			<#if appSlot != app.slot?first>
+				$('[data-rdv="rdv${app.idAppointment}_slot${appSlot.idSlot!}"] > span').css('color','#6d015b');
 			</#if>
-			$('[data-rdv="rdv${app.idAppointment}_slot${appSlot.idSlot!}"]').css('border-right','1rem solid green');
 		</#list>
 	</#if>
 </#list>
 </script>
+
 <style>
 #selectable{
 	width: 90vw;
 	margin: 0 auto;
-	
 }
 
 #selectable td.ui-selected, 
 #selectable td.ui-selected a {
-	background-color: #00f829 !important;
+	background-color: rgb(0, 248, 41) !important;
+	opacity: .5 !important;
 }
 
 #selectable td{
@@ -294,9 +376,9 @@ $(function () {
 	width:${(100/(x+1))?string['0']}%;
 }
 
-.ui-lasso {
-	display: none;
-}
+// .ui-lasso {
+// 	display: none;
+// }
 
 #selectable .selectable > a,
 #selectable .selectable > span{
@@ -307,7 +389,14 @@ $(function () {
 /* EXTRA CSS 	*/
 .place{
 	border-left: 5px solid transparent;
-	
+	padding: 0 1rem;
+}
+
+.place > span{
+	display: inline-block;
+	background-color:#6d015b;
+	color : white;
+	width: 100%;
 }
 
 .bt-slot{
@@ -330,3 +419,4 @@ $(function () {
 	background-color: rgba(248, 0, 12, 0.26);
 }
 </style>
+
