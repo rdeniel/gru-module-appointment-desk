@@ -114,22 +114,20 @@
 							</#list>
 							<th data-selectable="column" class="bg-danger">Surbooking</th>
 						</tr>
-							<@tableHeadBodySeparator />
-							
-							<#list list_slot as slot>
-								<tr>
-									<td style="width:2%" data-selectable="row">${slot.startingTime!}</td>	
-									<#list 1..x as seq >
-										<!-- <td id="slot-${slot.idSlot!}-desk${x-seq+1!}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idslot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':${slot.idForm!1},'desk':'${seq}'}" > -->
-										<td id="slot-${slot.idSlot!}-desk${x-seq+1!}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idslot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" >
-										</td>	
-									</#list>
-									<td id="slot-${slot.idSlot!}-desk${x+1!}" class="bg-danger" data-slot="" >
-								</tr>
-								 
-							</#list>
+						<@tableHeadBodySeparator />
+						<#list list_slot as slot>
+							<tr>
+								<td style="width:2%" data-selectable="row">${slot.startingTime!}</td>	
+								<#list 1..x as seq >
+									<!-- <td id="slot-${slot.idSlot!}-desk${x-seq+1!}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idslot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':${slot.idForm!1},'desk':'${seq}'}" > -->
+									<td id="slot-${slot.idSlot!}-desk${seq}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idslot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" >
+									</td>	
+								</#list>
+								<td id="slot-${slot.idSlot!}-desk${x+1!}" class="bg-danger" data-slot="" >
+							</tr>
+						</#list>
 						</@table>
-					<@paginationAdmin paginator=paginator />
+						<@paginationAdmin paginator=paginator />
 					</@boxBody>
 				</@box>
 			</@tabContent>
@@ -212,12 +210,12 @@ if( $('.selectable').length > 0 ){
 				console.log( 'isOpen : ' + isOpen);
 				/* Ajax 		*/	
 				if( isOpen ){
-					action = 'openAppointmentDesk';
+					action = 'closeAppointmentDesk';
 					filteredSlotData = JData.filter( function (slot) {
 						return slot.isOpen === 'false';
 					});
 				} else {
-					action = 'closeAppointmentDesk';
+					action = 'openAppointmentDesk';
 					filteredSlotData = JData.filter( function (slot) {
 						return slot.isOpen === 'true';
 					});
@@ -235,6 +233,7 @@ if( $('.selectable').length > 0 ){
 					contentType: 'application/json',
 					success: function( data, textStatus, jQxhr ){
 						console.log( JSON.stringify( data ) );
+						$('#manage_appointmentdesk').submit();
 					},
 					error: function( jqXhr, textStatus, errorThrown ){
 						console.log( errorThrown );
@@ -244,7 +243,7 @@ if( $('.selectable').length > 0 ){
 					},
 					crossDomain: true
 				});
-				$('#manage_appointmentdesk').submit();
+				
 			});
 		});
 
@@ -318,30 +317,25 @@ const countOccurrences = (aSlots) => {
 var nSurbook=0;
 const mapSlots = countOccurrences(aSlots);
 <#assign currRdv=0>
-<#list list_appointment?sort_by('nbPlaces')?reverse as app>
+<#list list_appointment?sort_by('nbPlaces') as app>
 	<#list app.slot?sort_by('startingDateTime') as slotApp>
 		<#if currRdv!=app.idAppointment>
 			var pos = mapSlots['${slotApp.idSlot}'];
 			if( pos > ${numb_desk} ){ 
 				nSurbook=pos;
-				pos=${numb_desk}; 
+				pos=1; 
 			}
 		</#if>
-		
 		if( pos == 0){  pos=nSurbook }	
 		console.log( '${app.user.lastName} ${app.user.firstName} - Slot ${slotApp.idSlot} pos : ' + pos );
 		var slotIdFilter='[id^=slot-${slotApp.idSlot}-desk' + pos + ']';
 		var slotId='[id^=slot-${slotApp.idSlot}-desk' + pos;
 		$( slotIdFilter ).attr('data-rdv','rdv${app.idAppointment}_slot${slotApp.idSlot!}');
 		$( slotId ).html('<span> ${app.user.lastName} ${app.user.firstName} <#if app.nbPlaces gt 1>( nb pers. ${app.nbPlaces} )</#if> </span>');
-		
 		mapSlots['${slotApp.idSlot}'] = pos - 1;
-		
 		<#assign currRdv=app.idAppointment>	
 	</#list>
 </#list>
-
-
 <#list list_appointment as app>
 	<#if app.slot?size gt 1>
 		<#list app.slot as appSlot>
@@ -379,10 +373,6 @@ const mapSlots = countOccurrences(aSlots);
 #selectable .place{
 	width:${(100/(x+1))?string['0']}%;
 }
-
-// .ui-lasso {
-// 	display: none;
-// }
 
 #selectable .selectable > a,
 #selectable .selectable > span{
