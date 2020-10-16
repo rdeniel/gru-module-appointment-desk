@@ -120,7 +120,8 @@
 								<tr>
 									<td style="width:2%" data-selectable="row">${slot.startingTime!}</td>	
 									<#list 1..x as seq >
-										<td id="slot-${slot.idSlot!}-desk${x-seq+1!}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idslot':${slot.idSlot!},'startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':${slot.maxCapacity},'isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':${slot.isSpecific?c},'idForm':${slot.idForm!1},'desk':'${seq}'}" >
+										<!-- <td id="slot-${slot.idSlot!}-desk${x-seq+1!}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idslot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':${slot.idForm!1},'desk':'${seq}'}" > -->
+										<td id="slot-${slot.idSlot!}-desk${x-seq+1!}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idslot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" >
 										</td>	
 									</#list>
 									<td id="slot-${slot.idSlot!}-desk${x+1!}" class="bg-danger" data-slot="" >
@@ -211,23 +212,26 @@ if( $('.selectable').length > 0 ){
 				console.log( 'isOpen : ' + isOpen);
 				/* Ajax 		*/	
 				if( isOpen ){
-					action = 'closeAppointmentDesk';
+					action = 'openAppointmentDesk';
 					filteredSlotData = JData.filter( function (slot) {
 						return slot.isOpen === 'false';
 					});
 				} else {
-					action = 'openAppointmentDesk';
+					action = 'closeAppointmentDesk';
 					filteredSlotData = JData.filter( function (slot) {
 						return slot.isOpen === 'true';
 					});
 				}
 				
+				//var newData = '[{ "idSlot":"0", "startingDateTime":"2020-10-09T09:00","endingDateTime":"2020-10-09T09:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }, { "idSlot":"2", "startingDateTime":"2020-10-09T10:00","endingDateTime":"2020-10-09T10:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }, { "idSlot":"3", "startingDateTime":"2020-10-09T11:00","endingDateTime":"2020-10-09T11:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }]';
+				var newData =  JSON.stringify( filteredSlotData );
 				$.ajax({
 					url: jspUrl + action,
 					dataType: 'json',
 					type: 'POST',
 					cache: false,
-					data: JSON.stringify( filteredSlotData ),
+					// data: JSON.stringify( filteredSlotData ),
+					data: newData,
 					contentType: 'application/json',
 					success: function( data, textStatus, jQxhr ){
 						console.log( JSON.stringify( data ) );
