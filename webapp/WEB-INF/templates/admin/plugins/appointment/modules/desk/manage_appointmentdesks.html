@@ -1,5 +1,5 @@
 <#-- TODO Add id_form value to model -->
-
+<link rel='stylesheet' href='css/plugins/appointment/bootstrap-datetimepicker.css' />
 <#include "manageappointmentdesk_tabs.html" />
 <@row>
 	<@columns>
@@ -34,10 +34,7 @@
 			<@tabContent>
 				<@box>
 					<@boxHeader title='#i18n{appointment-desk.manage_appointmentdesk.title}' boxTools=true>
-						<@tform class='form-inline pull-right' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
-						
-							<@button type='submit' name='view_createAppointmentDesk' buttonIcon='plus' title='#i18n{appointment-desk.manage_appointmentdesks.buttonAdd}' />
-						</@tform>
+					<a href="modal" data-toggle="modal" title="Add this item" class="open-AddBookDialog"><i class="glyphicon icon-plus-sign"></i></a>'              
 					</@boxHeader>
 					<@boxBody>       
 					<@messages infos=infos />
@@ -166,11 +163,90 @@
 	</@modalBody>
 </@modal>
 
+
+
+<div class="modal fade" id="my_modal" tabindex="-1" role="dialog" aria-labelledby="qModalLabel">
+    <div class="modal-dialog modal-lg" role="document" >
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="btn btn-link pull-right" data-dismiss="modal" aria-label="#i18n{blog.create_blog.labelCollapse}">
+                  <i class="fa fa-remove" aria-hidden="true"></i>
+                </button>
+                <h4 class="modal-title" id="qModalLabel">#i18n{module.appointment.desk.increment.defaultTitle}</h4>
+            </div>
+            <div class="modal-body">
+                <p id="loader" class="text-center">
+                    #i18n{module.appointment.desk.increment.defaultTitle}
+                </p>
+		<@tform id='form-validate' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' params='enctype="multipart/form-data"'>
+						
+					<fieldset>
+						<input type="hidden" name="action" value="incrementMaxCapacity" />
+						<input type="hidden" name="id_form" value="${idForm!}" />
+
+						<@formGroup labelFor='incrementing_value' labelKey='#i18n{module.appointment.desk.increment.labelIncrementingValue}' helpKey='${formGroupHelpKey!}' mandatory=true>
+								<@input type='number' name='incrementing_value' id='incrementing_value' value='1' maxlength=2 params='onkeypress="return validateQty(event);"' min=1 max=10 />
+						</@formGroup>
+						<@formGroup labelFor='type' labelKey='#i18n{module.appointment.desk.increment.labelType}'>
+							<@select name='type' id='type' items=list_types default_value='' />
+						</@formGroup>
+						
+                     				<@formGroup labelFor='startingDate' labelKey='#i18n{module.appointment.desk.increment.labelStartingDate}'>
+							<@inputGroup>
+								<@input type='text' name='starting_date' id='startingDate' value="${day!}" />
+								<@inputGroupItem type='addon'>
+									<@icon style='calendar' />
+								</@inputGroupItem>
+							</@inputGroup>
+						</@formGroup>
+						<@formGroup labelFor='startingTime' labelKey='#i18n{module.appointment.desk.increment.labelStartingTime}'>
+							<@inputGroup>
+								<@input type='text' name='starting_time' id='startingTime' value='' />
+								<@inputGroupItem type='addon'>
+									<@icon style='clock-o' />
+								</@inputGroupItem>
+							</@inputGroup>
+						</@formGroup>
+
+						<@formGroup labelFor='endingDate' labelKey='#i18n{module.appointment.desk.increment.labelEndingDate}'>
+							<@inputGroup>
+								<@input type='text' name='ending_date' id='endingDate' value="${day!}" />
+								<@inputGroupItem type='addon'>
+									<@icon style='calendar' />
+								</@inputGroupItem>
+							</@inputGroup>
+						</@formGroup>
+
+						<@formGroup labelFor='endingTime' labelKey='#i18n{module.appointment.desk.increment.labelEndingTime}'>
+							<@inputGroup>
+								<@input type='text' name='ending_time' id='endingTime' value='' />
+								<@inputGroupItem type='addon'>
+									<@icon style='clock-o' />
+								</@inputGroupItem>
+							</@inputGroup>
+						</@formGroup>
+					
+					</fieldset>
+				<@formGroup>
+					<@button type='submit' name='save' id='save' buttonIcon='check' title='#i18n{module.appointment.desk.increment.labelValidate}' />
+							
+				</@formGroup>	
+				</@tform>
+					
+            </div>
+         
+        </div>
+    </div>
+</div>
+
+
+
 <script src="js/bootstrap-datepicker.js"></script>
 <script src="js/locales/bootstrap-datepicker.<@getRegional language=language />.js" charset="utf-8"></script>
-
 <script src="js/plugins/appointment/selectable.js"></script>
 <script src="js/plugins/appointment/selectable.table.min.js"></script>
+<script src="js/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
+
 <script>
 
 if( $('.selectable').length > 0 ){
@@ -346,6 +422,43 @@ const mapSlots = countOccurrences(aSlots);
 		</#list>
 	</#if>
 </#list>
+
+//triggered when modal is about to be shown
+$(document).ready(function () {
+    $(".open-AddBookDialog").click(function () {
+       
+        $('#my_modal').modal('show');
+    });
+
+
+ 
+});
+
+    $(function () {
+        $('#startingTime').datetimepicker({
+            format: 'HH:mm',
+            stepping: 1
+        });
+        $('#endingTime').datetimepicker({
+            format: 'HH:mm',
+            stepping: 1
+        });
+    });
+    
+    $('#startingDate').datepicker({
+        language : "${language}",
+        weekStart : 1,
+        todayBtn : true,
+        todayHighLight : true,
+        autoclose : true
+    });
+    $('#endingDate').datepicker({
+        language : "${language}",
+        weekStart : 1,
+        todayBtn : true,
+        todayHighLight : true,
+        autoclose : true
+    });    
 </script>
 
 <style>
@@ -413,4 +526,3 @@ const mapSlots = countOccurrences(aSlots);
 	background-color: rgba(248, 0, 12, 0.26);
 }
 </style>
-

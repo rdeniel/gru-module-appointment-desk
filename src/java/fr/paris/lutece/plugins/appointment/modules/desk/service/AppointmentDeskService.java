@@ -1,23 +1,26 @@
 package fr.paris.lutece.plugins.appointment.modules.desk.service;
 
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
+import org.apache.commons.lang.StringUtils;
+
 import fr.paris.lutece.plugins.appointment.business.appointment.Appointment;
-import fr.paris.lutece.plugins.appointment.business.slot.Period;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
-import fr.paris.lutece.plugins.appointment.business.slot.SlotHome;
 import fr.paris.lutece.plugins.appointment.business.user.UserHome;
 import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDesk;
 import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDeskHome;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.AppointmentDeskPlugin;
+import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementSlot;
+import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementingType;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.Place;
 import fr.paris.lutece.plugins.appointment.service.AppointmentService;
-import fr.paris.lutece.plugins.appointment.service.ClosingDayService;
 import fr.paris.lutece.plugins.appointment.service.SlotSafeService;
 import fr.paris.lutece.plugins.appointment.service.SlotService;
 import fr.paris.lutece.portal.service.util.AppLogService;
@@ -238,5 +241,34 @@ public class AppointmentDeskService
 	    }
     }
     
-   
+    public static void incrementMaxCapacity ( IncrementSlot incrementSlot ) {
+    
+    	LocalDateTime startingDateTimes;
+    	LocalDateTime endingDateTimes;
+    	boolean lace= false;
+    	
+    	if ( StringUtils.isNotEmpty( incrementSlot.getStartingTime() ) &&   IncrementingType.HALFTIMEMORNING.getValue() != incrementSlot.getType( ).getValue( ))
+        {
+    		startingDateTimes = incrementSlot.getStartingDate().atTime( LocalTime.parse( incrementSlot.getStartingTime( ) ) );
+        }
+        else
+        {
+        	startingDateTimes = incrementSlot.getStartingDate().atStartOfDay( ) ;
+        }
+    	
+    	if ( StringUtils.isNotEmpty( incrementSlot.getEndingTime( ) ) &&  IncrementingType.HALFTIMEAFTERNOON.getValue( ) != incrementSlot.getType( ).getValue( ))
+        {
+    		endingDateTimes = incrementSlot.getStartingDate().atTime( LocalTime.parse( incrementSlot.getEndingTime( ) ) );
+        }
+        else
+        {
+        	endingDateTimes = incrementSlot.getStartingDate().atTime( LocalTime.MAX ) ;
+        }
+    	
+    	if( incrementSlot.getType().getValue() == IncrementingType.LACE.getValue( )) {
+    		lace= true;
+    	}
+    	
+    	SlotSafeService.incrementMaxCapacity( incrementSlot.getIdForm( ), incrementSlot.getIncrementingValue( ), startingDateTimes, endingDateTimes, lace );
+    } 
 }

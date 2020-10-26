@@ -38,12 +38,12 @@ package fr.paris.lutece.plugins.appointment.modules.desk.web;
 import fr.paris.lutece.plugins.appointment.business.appointment.Appointment;
 import fr.paris.lutece.plugins.appointment.business.comment.Comment;
 import fr.paris.lutece.plugins.appointment.business.planning.WeekDefinition;
-import fr.paris.lutece.plugins.appointment.business.slot.Period;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
-import fr.paris.lutece.plugins.appointment.business.user.User;
 import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDesk;
 import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDeskHome;
 import fr.paris.lutece.plugins.appointment.modules.desk.service.AppointmentDeskService;
+import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementSlot;
+import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementingType;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.Place;
 import fr.paris.lutece.plugins.appointment.service.AppointmentResourceIdService;
 import fr.paris.lutece.plugins.appointment.service.AppointmentService;
@@ -53,29 +53,22 @@ import fr.paris.lutece.plugins.appointment.service.WeekDefinitionService;
 import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFilterDTO;
 import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFormDTO;
 import fr.paris.lutece.portal.service.util.AppLogService;
-import fr.paris.lutece.portal.service.util.AppPathService;
 import fr.paris.lutece.portal.service.admin.AccessDeniedException;
-import fr.paris.lutece.portal.service.admin.AdminUserService;
 import fr.paris.lutece.portal.service.i18n.I18nService;
 import fr.paris.lutece.portal.service.rbac.RBACService;
 import fr.paris.lutece.portal.util.mvc.admin.annotations.Controller;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.Action;
 import fr.paris.lutece.portal.util.mvc.commons.annotations.View;
+import fr.paris.lutece.util.ReferenceList;
 import fr.paris.lutece.util.date.DateUtil;
-import fr.paris.lutece.util.json.JsonResponse;
-import fr.paris.lutece.util.json.JsonUtil;
-import fr.paris.lutece.util.url.UrlItem;
 import net.sf.json.JSONObject;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
@@ -113,7 +106,16 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PARAMETER_IS_OPEN = "is_open";
     private static final String PARAMETER_DATA = "data";
 
-    
+    private static final String PARAMETER_ENDING_DATE = "ending_date";
+    private static final String PARAMETER_STARTING_DATE = "starting_date";
+    private static final String PARAMETER_STARTING_TIME = "starting_time";
+    private static final String PARAMETER_ENDING_TIME = "ending_time";
+    private static final String PARAMETER_INCREMENTING_VALUE = "incrementing_value";
+    private static final String PARAMETER_TYPE = "type";
+
+
+
+
 
 
     // Properties for page titles
@@ -127,6 +129,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String MARK_LIST_COMMENTS = "list_comments";
     private static final String MARK_LIST_SLOT = "list_slot";
     private static final String MARK_LIST_APPOINTMENT = "list_appointment";
+    private static final String MARK_LIST_TYPE= "list_types";
     
     
 
@@ -143,6 +146,8 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     // Actions
     private static final String ACTION_CLOSE_APPOINTMENTDESK = "closeAppointmentDesk";
     private static final String ACTION_OPEN_APPOINTMENTDESK = "openAppointmentDesk";
+    private static final String ACTION_INCREMENT_MAX_CAPACITY = "incrementMaxCapacity";
+
 
     // Infos
     private static final String INFO_APPOINTMENTDESK_CREATED = "module.appointment.desk.info.appointmentdesk.created";
@@ -214,6 +219,8 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         model.put( PARAMETER_LIST_PLACE, listPlace );
         model.put( MARK_DATE_DAY, strDayDate );
         model.put( MARK_ID_FORM, nIdForm );
+        model.put( MARK_LIST_TYPE, getListTypes( ));
+
 
         return getPage( PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS, TEMPLATE_MANAGE_APPOINTMENTDESKS, model );
     }
@@ -314,5 +321,55 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         json.element(JSON_KEY_SUCCESS, JSON_KEY_SUCCESS);
         return json.toString( );
 
+    }
+    
+    @Action( ACTION_INCREMENT_MAX_CAPACITY )
+    public String doIncrementMaxCapacity( HttpServletRequest request ) 
+    {
+    	IncrementSlot incrementSlot= new IncrementSlot( );
+        populate( request, incrementSlot );
+        AppointmentDeskService.incrementMaxCapacity( incrementSlot);
+
+        return getManageAppointmentDesks( request );
+    }
+    
+    /**
+     * List of all the available type
+     * 
+     * @return the list of the type
+     */
+    private ReferenceList getListTypes( )
+    {
+        ReferenceList refListType = new ReferenceList( );
+        refListType.addItem( IncrementingType.FULLTIME.getValue( ), I18nService.getLocalizedString( IncrementingType.FULLTIME.getKey( ), getLocale( ) ) );
+        refListType.addItem( IncrementingType.HALFTIMEMORNING.getValue( ), I18nService.getLocalizedString( IncrementingType.HALFTIMEMORNING.getKey( ), getLocale( ) ) );
+        refListType.addItem( IncrementingType.HALFTIMEAFTERNOON.getValue( ), I18nService.getLocalizedString( IncrementingType.HALFTIMEAFTERNOON.getKey( ), getLocale( ) ) );
+        refListType.addItem( IncrementingType.LACE.getValue( ), I18nService.getLocalizedString( IncrementingType.LACE.getKey( ), getLocale( ) ) );
+
+        
+        return refListType;
+    }
+    /**
+     * Populate a bean using parameters in http request
+     * 
+     * @param request
+     *            http request
+     * @param bean
+     *            bean to populate
+     */
+    private void populate(HttpServletRequest request, IncrementSlot incrementSlot) {
+    	
+    	incrementSlot.setIdForm( Integer.parseInt(request.getParameter(PARAMETER_ID_FORM)));
+    	incrementSlot.setEndingTime(request.getParameter( PARAMETER_ENDING_TIME));
+    	incrementSlot.setStartingTime(request.getParameter( PARAMETER_STARTING_TIME));
+    	incrementSlot.setIncrementingValue(Integer.parseInt(request.getParameter(PARAMETER_INCREMENTING_VALUE)));
+    	incrementSlot.setEndingDate( DateUtil.formatDate( request.getParameter( PARAMETER_ENDING_DATE ), getLocale( ) ).toInstant( )
+                .atZone( ZoneId.systemDefault( ) ).toLocalDate( ) );
+    	
+    	incrementSlot.setStartingDate( DateUtil.formatDate( request.getParameter( PARAMETER_STARTING_DATE ), getLocale( ) ).toInstant( )
+                .atZone( ZoneId.systemDefault( ) ).toLocalDate( ) );
+    	
+    	int type=  Integer.parseInt( request.getParameter(PARAMETER_TYPE));
+    	incrementSlot.setType(IncrementingType.valueOf(type));
     }
 }
