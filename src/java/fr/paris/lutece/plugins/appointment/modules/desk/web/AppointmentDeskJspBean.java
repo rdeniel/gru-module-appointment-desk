@@ -39,12 +39,9 @@ import fr.paris.lutece.plugins.appointment.business.appointment.Appointment;
 import fr.paris.lutece.plugins.appointment.business.comment.Comment;
 import fr.paris.lutece.plugins.appointment.business.planning.WeekDefinition;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
-import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDesk;
-import fr.paris.lutece.plugins.appointment.modules.desk.business.AppointmentDeskHome;
 import fr.paris.lutece.plugins.appointment.modules.desk.service.AppointmentDeskService;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementSlot;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementingType;
-import fr.paris.lutece.plugins.appointment.modules.desk.util.Place;
 import fr.paris.lutece.plugins.appointment.service.AppointmentResourceIdService;
 import fr.paris.lutece.plugins.appointment.service.AppointmentService;
 import fr.paris.lutece.plugins.appointment.service.CommentService;
@@ -93,17 +90,10 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String TEMPLATE_MANAGE_APPOINTMENTDESKS = "/admin/plugins/appointment/modules/desk/manage_appointmentdesks.html";
 
     // Parameters
-    private static final String PARAMETER_ID_APPOINTMENTDESK = "id";
     private static final String PARAMETER_ID_FORM = "id_form";
-    private static final String PARAMETER_LIST_PLACE = "places";
 
-    private static final String PARAMETER_OPENING_TIME = "start_closing";
-    private static final String PARAMETER_CLOSING_TIME = "end_closing";
     private static final String PARAMETER_NUMB_DESK = "numb_desk";
     private static final String PARAMETER_DATE_DAY = "day";
-    private static final String PARAMETER_STARTING_DATE_TIME = "starting_date_time";
-    private static final String PARAMETER_ENDING_DATE_TIME = "ending_date_time";
-    private static final String PARAMETER_IS_OPEN = "is_open";
     private static final String PARAMETER_DATA = "data";
 
     private static final String PARAMETER_ENDING_DATE = "ending_date";
@@ -112,17 +102,10 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PARAMETER_ENDING_TIME = "ending_time";
     private static final String PARAMETER_INCREMENTING_VALUE = "incrementing_value";
     private static final String PARAMETER_TYPE = "type";
-
-
-
-
-
-
     // Properties for page titles
     private static final String PROPERTY_PAGE_TITLE_MANAGE_APPOINTMENTDESKS = "appointment-desk.manage_appointmentdesks.pageTitle";
 
     // Markers
-    private static final String MARK_APPOINTMENTDESK_LIST = "appointmentdesk_list";
     private static final String MARK_LOCALE = "language";
     private static final String MARK_DATE_DAY = "day";
     private static final String MARK_ID_FORM = "idForm";
@@ -138,7 +121,6 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     // Properties
 
     // Validations
-    private static final String VALIDATION_ATTRIBUTES_PREFIX = "module.appointment.desk.model.entity.appointmentdesk.attribute.";
 
     // Views
     private static final String VIEW_MANAGE_APPOINTMENTDESKS = "manageAppointmentDesks";
@@ -150,8 +132,6 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 
 
     // Infos
-    private static final String INFO_APPOINTMENTDESK_CREATED = "module.appointment.desk.info.appointmentdesk.created";
-    private static final String INFO_APPOINTMENTDESK_REMOVED = "module.appointment.desk.info.appointmentdesk.removed";
     
     private static final String JSON_KEY_ERROR = "error";
     private static final String JSON_KEY_SUCCESS = "success";
@@ -160,7 +140,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String PROPERTY_MESSAGE_ERROR_ACCESS_DENIED = "module.appointment.desk.error.access.denied";
 
     // Session variable to store working values
-    private AppointmentDesk _appointmentdesk;
+
 
     /**
      * Build the Manage View
@@ -195,10 +175,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         Slot slot = listSlot.stream( ).max( Comparator.comparing( Slot::getMaxCapacity ) ).orElseThrow( NoSuchElementException::new );
         int appointmentDesk = slot.getMaxCapacity( );
 
-        _appointmentdesk = new AppointmentDesk( );
-        List<AppointmentDesk> listAppointmentDesks = AppointmentDeskHome.getAppointmentDesksList( );
-        List<Place> listPlace = AppointmentDeskService.builListdPlace( listSlot, nIdForm, dateDay, appointmentDesk );
-        Map<String, Object> model = getPaginatedListModel( request, MARK_APPOINTMENTDESK_LIST, listAppointmentDesks, JSP_MANAGE_APPOINTMENTDESKS );
+        Map<String, Object> model = getModel();
         java.sql.Date dateSqlDaey= java.sql.Date.valueOf(dateDay);
         List<Comment> listComment= CommentService.finListComments( dateSqlDaey, dateSqlDaey , nIdForm);
         
@@ -214,9 +191,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         model.put( PARAMETER_NUMB_DESK, appointmentDesk );
         model.put( MARK_LIST_SLOT, listSlot);
         model.put( MARK_LIST_APPOINTMENT, listAppt);
-
         model.put( MARK_LOCALE, getLocale( ) );
-        model.put( PARAMETER_LIST_PLACE, listPlace );
         model.put( MARK_DATE_DAY, strDayDate );
         model.put( MARK_ID_FORM, nIdForm );
         model.put( MARK_LIST_TYPE, getListTypes( ));
