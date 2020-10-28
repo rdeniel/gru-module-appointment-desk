@@ -265,7 +265,6 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     	String strJson= request.getParameter(PARAMETER_DATA);
         AppLogService.debug( "appointmentDesk - Received strJson : " + strJson); 
    	    ObjectMapper mapper = new ObjectMapper( );
-        mapper.configure( DeserializationFeature.UNWRAP_ROOT_VALUE, true );
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         
         List<Slot> listSlots;
