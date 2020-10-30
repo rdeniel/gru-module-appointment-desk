@@ -34,7 +34,7 @@
 			<@tabContent>
 				<@box>
 					<@boxHeader title='#i18n{appointment-desk.manage_appointmentdesk.title}' boxTools=true>
-					<a href="modal" data-toggle="modal" title="Add this item" class="open-AddBookDialog"><i class="glyphicon icon-plus-sign"></i></a>'              
+					<a href="modal" data-toggle="modal" title="Add this item" class="open-AddBookDialog"><i class="glyphicon icon-plus-sign"></i>Add Desk</a>             
 					</@boxHeader>
 					<@boxBody>       
 					<@messages infos=infos />
@@ -117,7 +117,7 @@
 								<td style="width:2%" data-selectable="row">${slot.startingTime!}</td>	
 								<#list 1..x as seq >
 									<!-- <td id="slot-${slot.idSlot!}-desk${x-seq+1!}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idslot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':${slot.idForm!1},'desk':'${seq}'}" > -->
-									<td id="slot-${slot.idSlot!}-desk${seq}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idslot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" >
+									<td id="slot-${slot.idSlot!}-desk${seq}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idSlot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" >
 									</td>	
 								</#list>
 								<td id="slot-${slot.idSlot!}-desk${x+1!}" class="bg-danger" data-slot="" >
@@ -247,84 +247,87 @@
 <script src="js/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
 
 <script>
-
 if( $('.selectable').length > 0 ){
-	const table = document.querySelector("table");
-	const selectable = new Selectable({
-		appendTo: table,
-		filter: table.querySelectorAll(".selectable"),
-		toggle: true,
-		saveState: 10,
-		lasso: {
-			border: "4px dotted rgba( 0, 248, 41, 1)",
-			borderRadius: "0",
-			backgroundColor: "rgba(0, 248, 41, 0.5)"
-		}	
-	});
-	selectable.table();
-	
-	selectable.on("end", function(e, selected, unselected) {
-		var slotData='', idx=1;
-		const a=selectable.getSelectedNodes();
-		const slotSize = a.length;
-		a.forEach( function( el ){
-			slotData = slotData + el.dataset.slot;
-			if( idx < slotSize ) slotData = slotData + ','
-			idx++; 
-		});
+        const table = document.querySelector("table");
+        const selectable = new Selectable({
+                appendTo: table,
+                filter: table.querySelectorAll(".selectable"),
+                toggle: true,
+                saveState: 10,
+                lasso: {
+                        border: "4px dotted rgba( 0, 248, 41, 1)",
+                        borderRadius: "0",
+                        backgroundColor: "rgba(0, 248, 41, 0.5)"
+                }       
+        });
+        selectable.table();
+        
+        selectable.on("end", function(e, selected, unselected) {
+                var slotData='', idx=1;
+                const a=selectable.getSelectedNodes();
+                const slotSize = a.length;
+                a.forEach( function( el ){
+                        slotData = slotData + el.dataset.slot;
+                        if( idx < slotSize ) slotData = slotData + ','
+                        idx++; 
+                });
 
-		slotData = '[' +  slotData.replace(/\'/ig,'"') + ']';
-		// console.log( slotSize +  '|' + slotData );
-		// Show Modal
-		$('#slottoggle').modal('toggle');
-		$('#slottoggle').on('shown.bs.modal', function (event) {
-			var modal = $(this), btnModal = modal.find('#saveSlotState'), action='', jspUrl = 'jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=', filteredSlotData=null; 
-			btnModal.click( function( e ){
-				var isOpen = modal.find('.modal-body #doOpenSlot:checked').val();
-				var JData = JSON.parse( slotData );
-				console.log( 'isOpen : ' + isOpen);
-				/* Ajax 		*/	
-				if( isOpen ){
-					action = 'closeAppointmentDesk';
-					filteredSlotData = JData.filter( function (slot) {
-						return slot.isOpen === 'false';
-					});
-				} else {
-					action = 'openAppointmentDesk';
-					filteredSlotData = JData.filter( function (slot) {
-						return slot.isOpen === 'true';
-					});
-				}
-				
-				//var newData = '[{ "idSlot":"0", "startingDateTime":"2020-10-09T09:00","endingDateTime":"2020-10-09T09:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }, { "idSlot":"2", "startingDateTime":"2020-10-09T10:00","endingDateTime":"2020-10-09T10:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }, { "idSlot":"3", "startingDateTime":"2020-10-09T11:00","endingDateTime":"2020-10-09T11:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }]';
-				var newData =  JSON.stringify( filteredSlotData );
-				$.ajax({
-					url: jspUrl + action,
-					dataType: 'json',
-					type: 'POST',
-					cache: false,
-					// data: JSON.stringify( filteredSlotData ),
-					data: newData,
-					contentType: 'application/json',
-					success: function( data, textStatus, jQxhr ){
-						console.log( JSON.stringify( data ) );
-						$('#manage_appointmentdesk').submit();
-					},
-					error: function( jqXhr, textStatus, errorThrown ){
-						console.log( errorThrown );
-					},
-					xhrFields: {
-							withCredentials: true
-					},
-					crossDomain: true
-				});
-				
-			});
-		});
+                slotData = '[' +  slotData.replace(/\'/ig,'"') + ']';
+                // console.log( slotSize +  '|' + slotData );
+                // Show Modal
+                $('#slottoggle').modal('toggle');
+                $('#slottoggle').on('shown.bs.modal', function (event) {
+                        var modal = $(this), btnModal = modal.find('#saveSlotState'), action='', jspUrl = 'jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=', filteredSlotData=null; 
+                        btnModal.click( function( e ){
+                                var isOpen = modal.find('.modal-body input:checked').val();
+                                var JData = JSON.parse( slotData );
 
-		$('#slottoggle').on('hidden.bs.modal', function (event) {
-			selectable.clear()
-		});
+		 console.log( 'isOpen : ' + isOpen);
+                                /* Ajax                 */      
+                                if( isOpen==0 ){
+                                        action = 'closeAppointmentDesk';
+                                        filteredSlotData = JData.filter( function (slot) {
+                                                return slot.isOpen === 'true';
+                                        });
+                                } else {
+                                        action = 'openAppointmentDesk';
+                                        filteredSlotData = JData.filter( function (slot) {
+                                                return slot.isOpen === 'false';
+                                        });
+                                }
+                                
+                                //var newData = '[{ "idSlot":"0", "startingDateTime":"2020-10-09T09:00","endingDateTime":"2020-10-09T09:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }, { "idSlot":"2", "startingDateTime":"2020-10-09T10:00","endingDateTime":"2020-10-09T10:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }, { "idSlot":"3", "startingDateTime":"2020-10-09T11:00","endingDateTime":"2020-10-09T11:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }]';
+                                var newData =  JSON.stringify( filteredSlotData );
+                                console.log( newData );
+                                if( newData !== '' ){
+                                        $.ajax({
+                                                url: jspUrl + action,
+                                                dataType: 'json',
+                                                type: 'POST',
+                                                cache: false,
+                                                data:{'data': newData},
+                                                //contentType: 'application/json',
+                                                success: function( data, textStatus, jQxhr ){
+                                                        console.log( JSON.stringify( data ) );
+                                                        $('#manage_appointmentdesk').submit();
+                                                },
+                                                error: function( jqXhr, textStatus, errorThrown ){
+                                                        console.log( errorThrown );
+                                                },
+                                                xhrFields: {
+                                                        withCredentials: true
+                                                },
+                                                crossDomain: true
+                                        });
+                                }
+                                $('#slottoggle').modal('toggle');
+                        });
+                });
+
+                $('#slottoggle').on('hidden.bs.modal', function (event) {
+                        selectable.clear()
+                });
+
 		
 		console.log( selectable.getSelectedNodes() );
 	});

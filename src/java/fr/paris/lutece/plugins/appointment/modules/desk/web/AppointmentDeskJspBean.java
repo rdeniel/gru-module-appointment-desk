@@ -138,6 +138,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 
     private static final String  PROPERTY_MESSAGE_ERROR_PARSING_JSON = "module.appointment.desk.error.parsing.json";
     private static final String PROPERTY_MESSAGE_ERROR_ACCESS_DENIED = "module.appointment.desk.error.access.denied";
+    private int _nMaxCapacity;
 
     // Session variable to store working values
 
@@ -186,7 +187,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         
         
 		List<Appointment> listAppt = AppointmentService.findListAppointmentsByFilter(filter);
-        
+		_nMaxCapacity= appointmentDesk;
         model.put( MARK_LIST_COMMENTS, listComment);
         model.put( PARAMETER_NUMB_DESK, appointmentDesk );
         model.put( MARK_LIST_SLOT, listSlot);
@@ -265,6 +266,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     	String strJson= request.getParameter(PARAMETER_DATA);
         AppLogService.debug( "appointmentDesk - Received strJson : " + strJson); 
    	    ObjectMapper mapper = new ObjectMapper( );
+   		mapper.registerModule(new JavaTimeModule());
         mapper.configure( DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false );
         
         List<Slot> listSlots;
@@ -290,7 +292,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
              
         }
         
-        AppointmentDeskService.openAppointmentDesk(listSlots);
+        AppointmentDeskService.openAppointmentDesk(listSlots, _nMaxCapacity);
         
         json.element(JSON_KEY_SUCCESS, JSON_KEY_SUCCESS);
         return json.toString( );

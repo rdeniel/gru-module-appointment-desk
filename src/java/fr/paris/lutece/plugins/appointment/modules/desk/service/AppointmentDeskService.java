@@ -7,10 +7,13 @@ import java.util.concurrent.locks.Lock;
 
 import org.apache.commons.lang.StringUtils;
 
+import fr.paris.lutece.plugins.appointment.business.planning.ClosingDay;
+import fr.paris.lutece.plugins.appointment.business.slot.Period;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.AppointmentDeskPlugin;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementSlot;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementingType;
+import fr.paris.lutece.plugins.appointment.service.ClosingDayService;
 import fr.paris.lutece.plugins.appointment.service.SlotSafeService;
 import fr.paris.lutece.plugins.appointment.service.SlotService;
 import fr.paris.lutece.portal.service.util.AppLogService;
@@ -30,27 +33,33 @@ public class AppointmentDeskService
     
     	for(Slot slot: listSlot) {
     		
-    		if( slot.getIdSlot() != 0) 
+    		if( slot.getIdSlot() == 0) 
     		{
     			 // Need to get all the informations to create the slot
 	        
     			SlotService.addDateAndTimeToSlot(slot);
-	            SlotSafeService.saveSlot(slot);
-    			
+				slot.setNbRemainingPlaces( slot.getMaxCapacity( ) );
+		        slot.setNbPotentialRemainingPlaces( slot.getMaxCapacity() );
+				slot= SlotSafeService.saveSlot(slot);
+
     		}
     		Lock lock = SlotSafeService.getLockOnSlot( slot.getIdSlot() );
     		lock.lock( );
     		try
     		{
     		    Slot oldSlot = SlotService.findSlotById( slot.getIdSlot( ) );
-    	        slot.setMaxCapacity(oldSlot.getMaxCapacity() - 1);
-    	        slot.setNbPotentialRemainingPlaces( Math.max( 0, oldSlot.getNbPotentialRemainingPlaces( ) - 1 ) );
-    	        slot.setNbRemainingPlaces( oldSlot.getNbRemainingPlaces( ) - 1  );
-	
-    		     TransactionManager.beginTransaction( AppointmentDeskPlugin.getPlugin( ) );  
-    	        	
-    		     SlotSafeService.saveSlot( slot );
-    		     TransactionManager.commitTransaction( AppointmentDeskPlugin.getPlugin( ) );
+
+    			if(oldSlot.getMaxCapacity() > 0 ) {
+    				   			
+	    	        slot.setMaxCapacity(oldSlot.getMaxCapacity() - 1);
+	    	        slot.setNbPotentialRemainingPlaces( oldSlot.getNbPotentialRemainingPlaces( ) - 1  );
+	    	        slot.setNbRemainingPlaces( oldSlot.getNbRemainingPlaces( ) - 1  );
+		
+	    		     TransactionManager.beginTransaction( AppointmentDeskPlugin.getPlugin( ) );  
+	    	        	
+	    		     SlotSafeService.saveSlot( slot );
+	    		     TransactionManager.commitTransaction( AppointmentDeskPlugin.getPlugin( ) );
+    			}
     		        
     		    }catch( Exception e )
     		    {
@@ -70,46 +79,61 @@ public class AppointmentDeskService
     }
     
     
-    public static void openAppointmentDesk( List<Slot> listSlot ) {
+    public static void openAppointmentDesk( List<Slot> listSlot, int nMaxCapacity ) {
         
+    	ClosingDay closingDay = null;
+    	if( !listSlot.isEmpty()) {
+    		
+    		 closingDay= ClosingDayService.findClosingDayByIdFormAndDateOfClosingDay(listSlot.get( 0 ).getIdForm() , listSlot.get( 0 ).getStartingDateTime().toLocalDate()); 
+    	}
     
     	for(Slot slot: listSlot) {
     		
-    		if( slot.getIdSlot() != 0) 
+    		if( slot.getIdSlot() == 0) 
     		{
     			 // Need to get all the informations to create the slot
 	        
     			SlotService.addDateAndTimeToSlot(slot);
-	            SlotSafeService.saveSlot(slot);
+    			slot.setNbRemainingPlaces( slot.getMaxCapacity( ) );
+		        slot.setNbPotentialRemainingPlaces( slot.getMaxCapacity() );
+	            slot= SlotSafeService.saveSlot(slot);
     			
     		}
-    		Lock lock = SlotSafeService.getLockOnSlot( slot.getIdSlot() );
-    		lock.lock( );
-    		try
-    		{
-    		    Slot oldSlot = SlotService.findSlotById( slot.getIdSlot( ) );
-
-    		   slot.setMaxCapacity(oldSlot.getMaxCapacity() + 1);
- 		       slot.setNbPotentialRemainingPlaces( oldSlot.getNbPotentialRemainingPlaces( ) + 1 );
-    		   slot.setNbRemainingPlaces( oldSlot.getNbRemainingPlaces( ) + 1 );
-
-    	       slot.setIsOpen( true );
+    		if( closingDay == null ) {
+	    		
+    			Lock lock = SlotSafeService.getLockOnSlot( slot.getIdSlot() );
+	    		lock.lock( );
+	    		try
+	    		{
+	    			
+	    		    Slot oldSlot = SlotService.findSlotById( slot.getIdSlot( ) );
+	    		    if( oldSlot.getMaxCapacity()  < nMaxCapacity ) {   				
+	    			
+		    		   slot.setMaxCapacity(oldSlot.getMaxCapacity() + 1);
+		 		       slot.setNbPotentialRemainingPlaces( oldSlot.getNbPotentialRemainingPlaces( ) + 1 );
+		    		   slot.setNbRemainingPlaces( oldSlot.getNbRemainingPlaces( ) + 1 );
+		
+		    	       slot.setIsOpen( true );
+			
+		    		   TransactionManager.beginTransaction( AppointmentDeskPlugin.getPlugin( ) );  
+		    	        	
+		    		   SlotSafeService.saveSlot( slot );
+		    		   TransactionManager.commitTransaction( AppointmentDeskPlugin.getPlugin( ) );
+	    		    }    
+	    		    }catch( Exception e )
+	    		    {
+	    		    	TransactionManager.rollBack( AppointmentDeskPlugin.getPlugin( ) );
+	    		    	AppLogService.error( "Error open appointment desk" + e.getMessage(), e );
+	    		    	
+	    		    }finally
+			        {
 	
-    		   TransactionManager.beginTransaction( AppointmentDeskPlugin.getPlugin( ) );  
-    	        	
-    		     SlotSafeService.saveSlot( slot );
-    		    TransactionManager.commitTransaction( AppointmentDeskPlugin.getPlugin( ) );
-    		        
-    		    }catch( Exception e )
-    		    {
-    		    	TransactionManager.rollBack( AppointmentDeskPlugin.getPlugin( ) );
-    		    	AppLogService.error( "Error open appointment desk" + e.getMessage(), e );
-    		    	
-    		    }finally
-		        {
-
-		            lock.unlock( );
-		        }
+			            lock.unlock( );
+			        }
+    		}else {
+    			
+    			break;
+    		}
 
     		
     	}
@@ -148,4 +172,7 @@ public class AppointmentDeskService
     	
     	SlotSafeService.incrementMaxCapacity( incrementSlot.getIdForm( ), incrementSlot.getIncrementingValue( ), startingDateTimes, endingDateTimes, lace );
     } 
+    
+
+
 }
