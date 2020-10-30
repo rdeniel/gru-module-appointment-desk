@@ -171,11 +171,14 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
             dateDay = LocalDate.now( );
             strDayDate = DateUtil.getDateString( Date.from( dateDay.atStartOfDay( ).atZone( ZoneId.systemDefault( ) ).toInstant( ) ), getLocale( ) );
         }
-
+        int appointmentDesk=0;
         List<Slot> listSlot = SlotService.buildListSlot( nIdForm, mapWeekDefinition, dateDay, dateDay );
-        Slot slot = listSlot.stream( ).max( Comparator.comparing( Slot::getMaxCapacity ) ).orElseThrow( NoSuchElementException::new );
-        int appointmentDesk = slot.getMaxCapacity( );
-
+        if( !listSlot.isEmpty() ) {
+        	
+        	Slot slot = listSlot.stream( ).max( Comparator.comparing( Slot::getMaxCapacity ) ).orElseThrow( NoSuchElementException::new );
+            appointmentDesk = slot.getMaxCapacity( );
+        
+        }
         Map<String, Object> model = getModel();
         java.sql.Date dateSqlDaey= java.sql.Date.valueOf(dateDay);
         List<Comment> listComment= CommentService.finListComments( dateSqlDaey, dateSqlDaey , nIdForm);

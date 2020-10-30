@@ -159,11 +159,11 @@ public class AppointmentDeskService
     	
     	if ( StringUtils.isNotEmpty( incrementSlot.getEndingTime( ) ) &&  IncrementingType.HALFTIMEAFTERNOON.getValue( ) != incrementSlot.getType( ).getValue( ))
         {
-    		endingDateTimes = incrementSlot.getStartingDate().atTime( LocalTime.parse( incrementSlot.getEndingTime( ) ) );
+    		endingDateTimes = incrementSlot.getEndingDate( ).atTime( LocalTime.parse( incrementSlot.getEndingTime( ) ) );
         }
         else
         {
-        	endingDateTimes = incrementSlot.getStartingDate().atTime( LocalTime.MAX ) ;
+        	endingDateTimes = incrementSlot.getEndingDate( ).atTime( LocalTime.MAX ) ;
         }
     	
     	if( incrementSlot.getType().getValue() == IncrementingType.LACE.getValue( )) {
