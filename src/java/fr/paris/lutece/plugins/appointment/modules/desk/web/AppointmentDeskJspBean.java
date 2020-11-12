@@ -107,6 +107,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
 
     // Markers
     private static final String MARK_LOCALE = "language";
+    private static final String MARK_MACRO_LOCALE = "locale";
     private static final String MARK_DATE_DAY = "day";
     private static final String MARK_ID_FORM = "idForm";
     private static final String MARK_LIST_COMMENTS = "list_comments";
@@ -198,6 +199,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         model.put( MARK_LOCALE, getLocale( ) );
         model.put( MARK_DATE_DAY, strDayDate );
         model.put( MARK_ID_FORM, nIdForm );
+        model.put( MARK_MACRO_LOCALE, getLocale( ) );
         model.put( MARK_LIST_TYPE, getListTypes( ));
 
 
