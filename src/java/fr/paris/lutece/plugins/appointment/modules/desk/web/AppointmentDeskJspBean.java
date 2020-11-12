@@ -37,6 +37,7 @@ package fr.paris.lutece.plugins.appointment.modules.desk.web;
 
 import fr.paris.lutece.plugins.appointment.business.appointment.Appointment;
 import fr.paris.lutece.plugins.appointment.business.comment.Comment;
+import fr.paris.lutece.plugins.appointment.business.comment.CommentHome;
 import fr.paris.lutece.plugins.appointment.business.planning.WeekDefinition;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
 import fr.paris.lutece.plugins.appointment.modules.desk.service.AppointmentDeskService;
@@ -181,7 +182,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         }
         Map<String, Object> model = getModel();
         java.sql.Date dateSqlDaey= java.sql.Date.valueOf(dateDay);
-        List<Comment> listComment= CommentService.finListComments( dateSqlDaey, dateSqlDaey , nIdForm);
+        List<Comment> listComment= CommentService.findListCommentsInclusive( dateSqlDaey, dateSqlDaey , nIdForm);
         
         AppointmentFilterDTO filter= new AppointmentFilterDTO ();
         filter.setIdForm(nIdForm);
