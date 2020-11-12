@@ -181,7 +181,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         }
         Map<String, Object> model = getModel();
         java.sql.Date dateSqlDaey= java.sql.Date.valueOf(dateDay);
-        List<Comment> listComment= CommentService.finListComments( dateSqlDaey, dateSqlDaey , nIdForm);
+        List<Comment> listComment= CommentService.findListCommentsInclusive( dateSqlDaey, dateSqlDaey , nIdForm);
         
         AppointmentFilterDTO filter= new AppointmentFilterDTO ();
         filter.setIdForm(nIdForm);
