@@ -1,7 +1,19 @@
 <#-- TODO Add id_form value to model -->
 
 <#include "manageappointmentdesk_tabs.html" />
-<link rel='stylesheet' href='css/plugins/appointment/bootstrap-datetimepicker.css' />
+<link rel="stylesheet" href="css/admin/plugins/appointment/appointment_desk.css"/>
+<link rel="stylesheet" href="css/plugins/appointment/bootstrap-datetimepicker.css"/>
+<script src="js/plugins/appointment/jquery.min.js"></script>
+<script src="js/plugins/appointment/moment.min.js" ></script>
+<script src="js/plugins/appointment/fullcalendar.min.js"></script>
+<script src="js/plugins/appointment/locale-all.js"></script>
+<script src="js/plugins/appointment/bootstrap-datepicker.js" ></script>
+<script src="js/locales/bootstrap-datepicker.fr.js" ></script>
+
+<script src="js/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
+
+<script src="js/plugins/appointment/selectable.js"></script>
+<script src="js/plugins/appointment/selectable.table.min.js"></script>
 
 <@row>
     <@columns>
@@ -29,12 +41,9 @@
 			<@tabContent>
 				<@box>
 					<@boxHeader title='#i18n{appointment-desk.manage_appointmentdesk.title}' boxTools=true>
-						<a href="modal" data-toggle="modal" title="Add this item" class="btn btn-primary open-AddBookDialog">
+						 <a href="modal" data-toggle="modal" title="Add this item" class="btn btn-primary open-AddBookDialog">
 							<i class="fa fa-plus-circle"></i> Add Desk
-						</a>     
-						<button type="button" data-toggle="modal" data-target="#commentModal" title="#i18n{appointment.create_comment.pageTitle}" id="toggle-add-comment" class="btn btn-primary">
-							<i class="fa fa-plus"></i> 
-						</button>					
+						</a>  		
 					</@boxHeader>
 					<@boxBody>       
 					<@messages infos=infos />
@@ -59,60 +68,66 @@
 							</@tform>
 						</@columns>
 						<@columns sm=6 class='text-center'>
-								<@tform  id='manage_appointmentdesk'  name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
-									<input type="hidden" name="id_form" value="${idForm!1}">
-									<@formGroup labelFor='dayi' labelKey='' >
-										<@inputGroup>
-											<@inputGroupItem type='addon'>
-												<@icon style='calendar' />
-											</@inputGroupItem>
-											<@input type='text' size='lg' name='day' id='day' value="${day!''}"  />
-										</@inputGroup>
-									</@formGroup>
-								</@tform>
-								<@row>
-									<#if list_comments?size gt 0>
-										<@columns xs=12 sm=10>
-											<@card>
-												<#list list_comments as comment>
-													<p class="text-left">#i18n{appointment.manage_comments.pageTitle} ${comment.startingValidityDate}: ${comment.comment!}</p>
-												</#list>
-											</@card>
-										</@columns>
-										
-									</#if>
-								</@row>					
-							</@columns>
-							<@columns sm=2 class='text-right'>
-								<@tform type='inline' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' class='hidden-xs'>
+							<@tform  id='manage_appointmentdesk'  name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp'>
+								<input type="hidden" name="id_form" value="${idForm!1}">
+								<@formGroup labelFor='dayi' labelKey='' >
+									<@inputGroup>
+										<@inputGroupItem type='addon'>
+											<@icon style='calendar' />
+										</@inputGroupItem>
+										<@input type='text' size='lg' name='day' id='day' value="${day!''}"  />
+									</@inputGroup>
+								</@formGroup>
+							</@tform>
+						</@columns>
+						<@columns sm=2 class='text-right'>
+							<@tform type='inline' name='manage_appointmentdesk' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' class='hidden-xs'>
 								<#assign nDay = dDay?long + (1 * 24 * 60 * 60 * 1000)>
 								<input type="hidden" name="id_form" value="${idForm!1}">
 								<input type="hidden" name="day" value="${nDay?number_to_date}">
 								<@formGroup labelFor='day' labelKey='' rows=2>
 									<@button type='submit' size='lg' color='primary' name='view_manageAppointmentDesks' buttonIcon='angle-double-right' iconPosition='right' title="${nDay?number_to_date}" />
 								</@formGroup>
-								</@tform>
-							</@columns>
-						</@row>
-						<@table id='selectable' class="clearfix">
+							</@tform>
+						</@columns>
+					</@row>
+					<@table id='selectable' class="clearfix">
 						<tr>
-							<th>
-								
-							</th>
+							<th></th>
 							<#assign x=numb_desk>
-							
 							<#list 1..x as seq >
 								<th data-selectable="column">Guichet: ${seq}</th>
 							</#list>
 							<th data-selectable="column" class="bg-danger">Surbooking</th>
 						</tr>
 						<@tableHeadBodySeparator />
+						<tr>
+							<td style="width:2%;vertical-align:middle" >
+								<button type="button" title="#i18n{appointment.create_comment.pageTitle}" id="toggle-add-comment" class="btn btn-link">
+									<span class="fa-stack fa-md">
+										<i class="fa fa-comment-o fa-stack-2x"></i>
+										<i class="fa fa-plus fa-stack-1x"></i>
+									</span>
+								</button>
+							</td>
+							<td colspan="${x}">
+								<#if list_comments?size gt 0>
+									<#list list_comments as comment>
+									<div class="comments" data-pop="{'id':'${comment.id}','comment':'${comment.comment!comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')?replace('\"', '&quote;')}','start':'${comment.startingValidityDate!}','end':'${comment.endingValidityDate}', 'creator':'${comment.creatorUserName!}','creationDate':'${comment.creationDate?date.xs!''}'}" >
+										${comment.comment!comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')?replace('\"', '&quote;')}
+										
+									</div>
+									</#list>
+								</#if>
+							</td>
+							<td></td>
+						</tr>
 						<#list list_slot as slot>
 							<tr>
 								<td style="width:2%" data-selectable="row">${slot.startingTime!}</td>	
 								<#list 1..x as seq >
 									<!-- <td id="slot-${slot.idSlot!}-desk${x-seq+1!}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idslot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':${slot.idForm!1},'desk':'${seq}'}" > -->
-									<td id="slot-${slot.idSlot!}-desk${seq}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idSlot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" >
+									<td id="slot-${slot.startingTime!?replace(':', '')}-desk${seq}" class="place selectable <#if slot.isOpen && seq lte slot.maxCapacity >slot-open<#else>slot-close</#if>" data-slot="{'idSlot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" >
 									</td>	
 								</#list>
 								<td id="slot-${slot.idSlot!}-desk${x+1!}" class="bg-danger" data-slot="" >
@@ -126,6 +141,36 @@
 		<hr>
     </@columns>
 </@row>
+
+<div class="modal fade" id="commentModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">#i18n{appointment.create_comment.pageTitle}</h4>
+            </div>
+            <div class="modal-body">
+                <@getCommentForm "comment" "startingValidityDate" "endingValidityDate" "doAddComment" idForm locale />
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">#i18n{portal.util.labelCancel}</button></div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="modify-comment" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title">#i18n{appointment.create_comment.pageTitle}</h4>
+            </div>
+            <div class="modal-body">
+                <@getCommentForm "comment" "modifyStartingValidityDate" "modifyEndingValidityDate" "doModifyComment" idForm locale />
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">#i18n{portal.util.labelCancel}</button></div>
+        </div>
+    </div>
+</div>
 
 <div class="modal fade" id="qModal" tabindex="-1" role="dialog" aria-labelledby="qModalLabel">
     <div class="modal-dialog modal-lg" role="document" >
@@ -143,7 +188,6 @@
                 </p>
                 <iframe style="width:100%;height:60vh;border:0" frameborder="0" id="qModalFrame" src=""></iframe>
             </div>
-         
         </div>
     </div>
 </div>
@@ -167,180 +211,146 @@
                 <h4 class="modal-title" id="qModalLabel">#i18n{module.appointment.desk.increment.defaultTitle}</h4>
             </div>
             <div class="modal-body">
-                <p id="loader" class="text-center">
-                    #i18n{module.appointment.desk.increment.defaultTitle}
-                </p>
-					<@tform id='form-validate' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' params='enctype="multipart/form-data"'>
-						<input type="hidden" name="action" value="incrementMaxCapacity" />
-						<input type="hidden" name="id_form" value="${idForm!}" />
-
-						<@formGroup labelFor='incrementing_value' labelKey='#i18n{module.appointment.desk.increment.labelIncrementingValue}' helpKey='${formGroupHelpKey!}' mandatory=true>
-								<@input type='number' name='incrementing_value' id='incrementing_value' value='1' maxlength=2 params='onkeypress="return validateQty(event);"' min=1 max=10 />
-						</@formGroup>
-						<@formGroup labelFor='type' labelKey='#i18n{module.appointment.desk.increment.labelType}'>
-							<@select name='type' id='type' items=list_types default_value='' />
-						</@formGroup>
-						
-                     				<@formGroup labelFor='startingDate' labelKey='#i18n{module.appointment.desk.increment.labelStartingDate}'>
-							<@inputGroup>
-								<@input type='text' name='starting_date' id='startingDate' value="${day!}" />
-								<@inputGroupItem type='addon'>
-									<@icon style='calendar' />
-								</@inputGroupItem>
-							</@inputGroup>
-						</@formGroup>
-						<@formGroup labelFor='startingTime' labelKey='#i18n{module.appointment.desk.increment.labelStartingTime}'>
-							<@inputGroup>
-								<@input type='text' name='starting_time' id='startingTime' value='' />
-								<@inputGroupItem type='addon'>
-									<@icon style='clock-o' />
-								</@inputGroupItem>
-							</@inputGroup>
-						</@formGroup>
-
-						<@formGroup labelFor='endingDate' labelKey='#i18n{module.appointment.desk.increment.labelEndingDate}'>
-							<@inputGroup>
-								<@input type='text' name='ending_date' id='endingDate' value="${day!}" />
-								<@inputGroupItem type='addon'>
-									<@icon style='calendar' />
-								</@inputGroupItem>
-							</@inputGroup>
-						</@formGroup>
-
-						<@formGroup labelFor='endingTime' labelKey='#i18n{module.appointment.desk.increment.labelEndingTime}'>
-							<@inputGroup>
-								<@input type='text' name='ending_time' id='endingTime' value='' />
-								<@inputGroupItem type='addon'>
-									<@icon style='clock-o' />
-								</@inputGroupItem>
-							</@inputGroup>
-						</@formGroup>
-					
-				<@formGroup>
-					<@button type='submit' name='save' id='save' buttonIcon='check' title='#i18n{module.appointment.desk.increment.labelValidate}' />
-							
-				</@formGroup>	
-				</@tform>
-					
+                <p id="loader" class="text-center">#i18n{module.appointment.desk.increment.defaultTitle}</p>
+				<@tform id='form-validate' action='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' params='enctype="multipart/form-data"'>
+					<input type="hidden" name="action" value="incrementMaxCapacity">
+					<input type="hidden" name="id_form" value="${idForm!}">
+					<@formGroup labelFor='incrementing_value' labelKey='#i18n{module.appointment.desk.increment.labelIncrementingValue}' helpKey='${formGroupHelpKey!}' mandatory=true>
+							<@input type='number' name='incrementing_value' id='incrementing_value' value='1' maxlength=2 params='onkeypress="return validateQty(event);"' min=1 max=10 />
+					</@formGroup>
+					<@formGroup labelFor='type' labelKey='#i18n{module.appointment.desk.increment.labelType}'>
+						<@select name='type' id='type' items=list_types default_value='' />
+					</@formGroup>
+					<@formGroup labelFor='startingDate' labelKey='#i18n{module.appointment.desk.increment.labelStartingDate}'>
+						<@inputGroup>
+							<@input type='text' name='starting_date' id='startingDate' value="${day!}" />
+							<@inputGroupItem type='addon'>
+								<@icon style='calendar' />
+							</@inputGroupItem>
+						</@inputGroup>
+					</@formGroup>
+					<@formGroup labelFor='startingTime' labelKey='#i18n{module.appointment.desk.increment.labelStartingTime}'>
+						<@inputGroup>
+							<@input type='text' name='starting_time' id='startingTime' value='' />
+							<@inputGroupItem type='addon'>
+								<@icon style='clock-o' />
+							</@inputGroupItem>
+						</@inputGroup>
+					</@formGroup>
+					<@formGroup labelFor='endingDate' labelKey='#i18n{module.appointment.desk.increment.labelEndingDate}'>
+						<@inputGroup>
+							<@input type='text' name='ending_date' id='endingDate' value="${day!}" />
+							<@inputGroupItem type='addon'>
+								<@icon style='calendar' />
+							</@inputGroupItem>
+						</@inputGroup>
+					</@formGroup>
+					<@formGroup labelFor='endingTime' labelKey='#i18n{module.appointment.desk.increment.labelEndingTime}'>
+						<@inputGroup>
+							<@input type='text' name='ending_time' id='endingTime' value='' />
+							<@inputGroupItem type='addon'>
+								<@icon style='clock-o' />
+							</@inputGroupItem>
+						</@inputGroup>
+					</@formGroup>
+					<@formGroup>
+						<@button type='submit' name='save' id='save' buttonIcon='check' title='#i18n{module.appointment.desk.increment.labelValidate}' />
+					</@formGroup>	
+				</@tform>	
             </div>
-         
         </div>
     </div>
 </div>
-
-<div class="modal fade" id="commentModal" tabindex="-1" role="dialog">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-                <h4 class="modal-title">#i18n{appointment.create_comment.pageTitle}</h4>
-            </div>
-            <div class="modal-body">
-                <@getCommentForm "comment" "startingValidityDate" "endingValidityDate" "doAddComment" idForm locale />
-            </div>
-            <div class="modal-footer"><button type="button" class="btn btn-default" data-dismiss="modal">#i18n{portal.util.labelCancel}</button></div>
-        </div>
-    </div>
-</div>
-
-<script src="js/bootstrap-datepicker.js"></script>
-<script src="js/locales/bootstrap-datepicker.<@getRegional language=language />.js" charset="utf-8"></script>
-<script src="js/plugins/appointment/selectable.js"></script>
-<script src="js/plugins/appointment/selectable.table.min.js"></script>
-<script src="js/plugins/appointment/moment.min.js"></script>
-<script src="js/plugins/appointment/bootstrap-datetimepicker.min.js"></script>
 
 <script>
 if( $('.selectable').length > 0 ){
-        const table = document.querySelector("table");
-        const selectable = new Selectable({
-                appendTo: table,
-                filter: table.querySelectorAll(".selectable"),
-                toggle: true,
-                saveState: 10,
-                lasso: {
-                        border: "4px dotted rgba( 0, 248, 41, 1)",
-                        borderRadius: "0",
-                        backgroundColor: "rgba(0, 248, 41, 0.5)"
-                }       
-        });
-        selectable.table();
+	const table = document.querySelector("table");
+	const selectable = new Selectable({
+		appendTo: table,
+		filter: table.querySelectorAll(".selectable"),
+		toggle: true,
+		saveState: 10,
+		lasso: {
+				border: "4px dotted rgba( 0, 248, 41, 1)",
+				borderRadius: "0",
+				backgroundColor: "rgba(0, 248, 41, 0.5)"
+		}       
+	});
+	selectable.table();
         
-        selectable.on("end", function(e, selected, unselected) {
+	selectable.on("end", function(e, selected, unselected) {
 		var slotData='', idx=1;
 		const a=selectable.getSelectedNodes();
 		const slotSize = a.length;
-		a.forEach( function( el ){
-			slotData = slotData + el.dataset.slot;
-			if( idx < slotSize ) slotData = slotData + ','
-			idx++; 
-		});
-
-		slotData = '[' +  slotData.replace(/\'/ig,'"') + ']';
-		// console.log( slotSize +  '|' + slotData );
-		// Show Modal
-		$('#slottoggle').modal('show');
-		$('#slottoggle').on('shown.bs.modal', function (event) {
-			var modal = $(this), btnModal = modal.find('#saveSlotState'), action='', jspUrl = 'jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=', filteredSlotData=null; 
-			btnModal.click( function( e ){
-				var isOpen = modal.find('.modal-body input:checked').val();
-				var JData = JSON.parse( slotData );
-				console.log( 'isOpen : ' + isOpen );
-				/* Ajax 		*/	
-				if( isOpen==0 ){
-					action = 'closeAppointmentDesk';
-					filteredSlotData = JData.filter( function (slot) {
-						return slot.isOpen === 'true';
-					});
-				} else {
-					action = 'openAppointmentDesk';
-					filteredSlotData = JData.filter( function (slot) {
-						return slot.isOpen === 'false';
-					});
-				}
-				
-				//var newData = '[{ "idSlot":"0", "startingDateTime":"2020-10-09T09:00","endingDateTime":"2020-10-09T09:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }, { "idSlot":"2", "startingDateTime":"2020-10-09T10:00","endingDateTime":"2020-10-09T10:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }, { "idSlot":"3", "startingDateTime":"2020-10-09T11:00","endingDateTime":"2020-10-09T11:40","maxCapacity":"3","isOpen":"true","isSpecific":"false","idForm":"1" }]';
-				var newData =  JSON.stringify( filteredSlotData );
-				console.log( 'filteredSlotData.length : ' + filteredSlotData.length );
-				if( filteredSlotData.length > 0 ){
-					$.ajax({
-						url: jspUrl + action,
-						dataType: 'json',
-						type: 'POST',
-						cache: false,
-						data:{'data': newData},
-						//contentType: 'application/json',
-						success: function( data, textStatus, jQxhr ){
-							console.log( textStatus + ' :' + JSON.stringify( data ) );
-							$('#manage_appointmentdesk').submit();
-						},
-						error: function( jqXhr, textStatus, errorThrown ){
-							console.log( textStatus + ' : ' + errorThrown );
-							$('#manage_appointmentdesk').submit();
-						},
-						xhrFields: {
-							withCredentials: true
-						},
-						crossDomain: true
-					});
-				} else {
-					$('#slottoggle').modal('hide');
-				}
-				
+		if ( slotSize > 0 ){
+			a.forEach( function( el ){
+				slotData = slotData + el.dataset.slot;
+				if( idx < slotSize ) slotData = slotData + ','
+				idx++; 
 			});
-		});
 
-		$('#slottoggle').on('hidden.bs.modal', function (event) {
-			selectable.clear()
-		});
-
+			slotData = '[' +  slotData.replace(/\'/ig,'"') + ']';
+			// console.log( slotSize +  '|' + slotData );
+			// Show Modal
+			$('#slottoggle').modal('show');
+			$('#slottoggle').on('shown.bs.modal', function (event) {
+				var modal = $(this), btnModal = modal.find('#saveSlotState'), action='', jspUrl = 'jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp?action=', filteredSlotData=null; 
+				btnModal.click( function( e ){
+					var isOpen = modal.find('.modal-body input:checked').val();
+					var JData = JSON.parse( slotData );
+					console.log( 'isOpen : ' + isOpen );
+					/* Ajax 		*/	
+					if( isOpen==0 ){
+						action = 'closeAppointmentDesk';
+						filteredSlotData = JData.filter( function (slot) {
+							return slot.isOpen === 'true';
+						});
+					} else {
+						action = 'openAppointmentDesk';
+						filteredSlotData = JData.filter( function (slot) {
+							return slot.isOpen === 'false';
+						});
+					}
+					
+					var newData =  JSON.stringify( filteredSlotData );
+					console.log( 'filteredSlotData.length : ' + filteredSlotData.length );
+					if( filteredSlotData.length > 0 ){
+						$.ajax({
+							url: jspUrl + action,
+							dataType: 'json',
+							type: 'POST',
+							cache: false,
+							data:{'data': newData},
+							success: function( data, textStatus, jQxhr ){
+								console.log( textStatus + ' :' + JSON.stringify( data ) );
+								$('#manage_appointmentdesk').submit();
+							},
+							error: function( jqXhr, textStatus, errorThrown ){
+								console.log( textStatus + ' : ' + errorThrown );
+								$('#manage_appointmentdesk').submit();
+							},
+							xhrFields: {
+								withCredentials: true
+							},
+							crossDomain: true
+						});
+					} else {
+						$('#slottoggle').modal('hide');
+					}
+				});
+			});
+			$('#slottoggle').on('hidden.bs.modal', function (event) {
+				selectable.clear()
+			});
+		}
 	});
 }
 	
 $(function () {
-
 	$('.content-header h1').html('<a href="jsp/admin/plugins/appointment/ManageAppointmentForms.jsp" title="#i18n{appointment.adminFeature.ManageAppointmentForm.name}">#i18n{appointment.adminFeature.ManageAppointmentForm.name}</a>');
+	
 	$('.bt-slot > .fa').toggle();
+	
 	$('#day').datepicker({
 		language : '${language}',
 		weekStart : 1,
@@ -371,7 +381,11 @@ $(function () {
 	});
 	
 	$(".open-AddBookDialog").click(function () {
-        $('#my_modal').modal('show');
+        $('#my_modal').modal({ show: true });
+    });
+	
+	$("#toggle-add-comment").click(function () {
+        $('#commentModal').modal({ show: true });
     });
 
 	$('#startingTime').datetimepicker({
@@ -390,16 +404,42 @@ $(function () {
 		todayHighLight : true,
 		autoclose : true
 	});
+
 	$('#endingDate').datepicker({
 		language : "${language}",
 		weekStart : 1,
 		todayBtn : true,
 		todayHighLight : true,
 		autoclose : true
-
 	});  
+
+	$('.comments').each( function(){
+		var pop = {
+			"container": "body",
+			"placement" : "bottom",
+			"html" : true,
+			"trigger" : "hover"
+		};
+		const comment_datas =  $(this).data('pop').replace( /\'/g, '"').replace( /\n/g, '').replace( /\r/g, '');
+		const comment = JSON.parse( comment_datas );
+		pop.content = '<p> Du '+ comment.start + ' au ' + comment.end + comment.comment +  '<hr><p><strong>Par ' + comment.creator + '</strong> le <time>' + comment.creationDate + '</time>' ;
+		$(this).popover( pop );
+		$(this).children('p:first').prepend( '[ ' + comment.creator  + ' | ' + comment.creationDate + ' ]' );
+		$(this).children('p:first').append( '<div class="btn-comments"><a href="#" class="toggle-modify-comment" data-idcomment="'+comment.id+'" data-text="'+encodeURI( comment.comment )+'" data-start="'+comment.start+'" data-end="'+comment.end+'"]"><i class="fa fa-pencil fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=' + comment.id + '" class="closeon text-danger"><i class="fa fa-remove fa-fw"></i></a></div>');
+	}); 
+
+	var modComment = $('table').find('.toggle-modify-comment');
+
+	$(modComment).click(function(ev) {
+		ev.preventDefault();
+		$("#modify-comment input[name='id_comment']").val( $(this).data('idcomment') );
+		tinyMCE.activeEditor.setContent( decodeURI( $(this).data('text') ) );
+		$( "#modify-comment input[name='startingValidityDate']" ).datepicker().datepicker( 'setDate',  new Date(  $(this).data('start') ) );
+		$( "#modify-comment input[name='endingValidityDate']" ).datepicker().datepicker( 'setDate', new Date(  $(this).data('end') ) );
+		$( "#modify-comment" ).modal('show');
+	
+	});
 });  
-  
 
 <#if list_appointment?? && list_appointment?size gt 0>
 	<#assign lastApp=list_appointment?last >
@@ -409,6 +449,7 @@ $(function () {
 var strSlots='<#list list_appointment as app><#list app.slot as slotApp>${slotApp.idSlot},</#list></#list>';
 strSlots = strSlots.slice(0, -1);
 var aSlots = strSlots.split(',');
+
 const countOccurrences = (aSlots) => {
     const map = {};
     for ( var i = 0; i < aSlots.length; i++ ) {
@@ -422,15 +463,17 @@ const mapSlots = countOccurrences(aSlots);
 <#assign currRdv=0>
 <#list list_appointment?sort_by('nbPlaces') as app>
 	<#list app.slot?sort_by('startingDateTime') as slotApp>
+		<!-- maxCapacity : ${slotApp.maxCapacity!} -->
 		<#if currRdv!=app.idAppointment>
+
 			var pos = mapSlots['${slotApp.idSlot}'];
 			
 			if( pos > ${numb_desk} ){ 
 				nSurbook=pos;
-				pos=1; 
+				pos=1 ; 
 			}
 		</#if>
-		if( pos == 0){ pos=nSurbook }	
+		if( pos == 0 ){ pos=nSurbook }	
 		
 		console.log( '${app.user.lastName} ${app.user.firstName} - Slot ${slotApp.idSlot} [ ${slotApp.startingDateTime} - ${slotApp.endingDateTime} ] pos : ' + pos + ' | rdv : ${app.idAppointment}' );
 		
@@ -438,7 +481,7 @@ const mapSlots = countOccurrences(aSlots);
 		var slotId='[id^=slot-${slotApp.idSlot}-desk' + pos + ']';
 		console.log( 'idFilter : ' + slotIdFilter );
 		$( slotIdFilter ).attr('data-rdv','rdv${app.idAppointment}_slot${slotApp.idSlot!}');
-		$( slotId ).html('<span> ${app.user.lastName} ${app.user.firstName} <#if app.nbPlaces gt 1>( nb pers. ${app.nbPlaces} )</#if> </span>');
+		$( slotId ).html('<span>${slotApp.isOpen?c!} / ${slotApp.nbRemainingPlaces!} / ${slotApp.maxCapacity!} / ${app.user.lastName} ${app.user.firstName} <#if app.nbPlaces gt 1>( nb pers. ${app.nbPlaces} )</#if> </span>');
 		
 		mapSlots['${slotApp.idSlot}'] = pos - 1;
 		<#assign currRdv=app.idAppointment>	
@@ -457,96 +500,7 @@ const mapSlots = countOccurrences(aSlots);
 		</#list>
 	</#if>
 </#list>
-
-     
+	
 </script>
-
-<style>
-#selectable{
-	width: 90vw;
-	margin: 2rem auto;
-}
-
-#selectable td.ui-selected, 
-#selectable td.ui-selected a {
-	background-color: rgb(0, 248, 41) !important;
-	opacity: .5 !important;
-}
-
-#selectable > tbody > tr > td {
-	border-bottom-width: 0; 
-}
-
-#selectable	td {
-	height: 45px ;
-	padding: 0 1px;
-	text-align: center;
-	position: relative;
-	left: 2px
-}
-
-#selectable th  {    
-	height: 45px ;
-	padding: 1rem;
-	text-align: center;
-	line-height: 1.42857143;
-	margin: 0;
-	border: 1px solid #ddd;
-	font-weight: normal;
-	vertical-align: middle;
-	font-weight: 700;
-}
-
-#selectable td:first-child{
-	padding: 0 .5em;
-	border: 1px solid #ddd;
-}
-
-#selectable .place{
-	width: ${(100/(x+1))?string['0']}%;
-}
-
-#selectable .selectable > a,
-#selectable .selectable > span{
-	padding: .5rem;
-	position: absolute;
-}
-
-/* EXTRA CSS 	*/
-.place{
-	border-left: 5px solid transparent;
-}
-
-.place > span {
-	display: inline-block;
-	background-color: #6d015b;
-	border-bottom-color: #6d015b;
-	border-top-color: #6d015b;
-	color: white;
-	width: 98%;
-	border-radius: 5px;
-	left: 0;
-}
-
-.bt-slot{
-	min-height: 1rem;
-	display: inline-block;
-	padding: 0;
-	margin: 0
-}
-
-.place.slot-open{
-	border-left-color: #00f829;
-}
-
-.place.slot-close{
-	border-left-color: #ff9102 !important;
-}
-
-#selectable th.place.slot-surbooking,
-.place.slot-surbooking {
-	background-color: #f8000c99;
-	border-left-color: #f8000c !important;
-	border-left-width: 5px;
-}
-</style>
+<#include "/admin/util/editor/editor.html" />
+<@initEditor />

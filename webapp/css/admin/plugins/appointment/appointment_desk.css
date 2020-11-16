@@ -1,0 +1,88 @@
+/* Appointment Desk Styles */
+#selectable{
+	width: 90vw;
+	margin: 2rem auto;
+}
+
+#selectable td.ui-selected, 
+#selectable td.ui-selected a {
+	background-color: rgb(0, 248, 41) !important;
+	opacity: .5 !important;
+}
+
+#selectable > tbody > tr > td {
+	border-bottom-width: 0; 
+}
+
+#selectable	td {
+	height: 45px ;
+	padding: 0 1px;
+	text-align: center;
+	position: relative;
+	left: 2px
+}
+
+#selectable th  {    
+	height: 45px ;
+	padding: 1rem;
+	text-align: center;
+	line-height: 1.42857143;
+	margin: 0;
+	border: 1px solid #ddd;
+	font-weight: normal;
+	vertical-align: middle;
+	font-weight: 700;
+}
+
+#selectable td:first-child{
+	padding: 0 .5em;
+	border: 1px solid #ddd;
+}
+
+#selectable .place{
+	width: ${(100/(x+1))?string['0']}%;
+}
+
+#selectable .selectable > a,
+#selectable .selectable > span{
+	padding: .5rem;
+	position: absolute;
+}
+
+/* EXTRA CSS 	*/
+.place{
+	border-left: 5px solid transparent;
+}
+
+.place > span {
+	display: inline-block;
+	background-color: #6d015b;
+	border-bottom-color: #6d015b;
+	border-top-color: #6d015b;
+	color: white;
+	width: 98%;
+	border-radius: 5px;
+	left: 0;
+}
+
+.bt-slot{
+	min-height: 1rem;
+	display: inline-block;
+	padding: 0;
+	margin: 0
+}
+
+.place.slot-open{
+	border-left-color: #00f829;
+}
+
+.place.slot-close{
+	border-left-color: #ff9102 !important;
+}
+
+#selectable th.place.slot-surbooking,
+.place.slot-surbooking {
+	background-color: #f8000c99;
+	border-left-color: #f8000c !important;
+	border-left-width: 5px;
+}
