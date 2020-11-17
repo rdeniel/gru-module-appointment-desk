@@ -1,11 +1,8 @@
-
 <#macro tabs2 tab >
-<@tabs>
-	<@tabList>
-			<li <#if tab="appointmentdesk">class="active"</#if>>
-				<@aButton href="jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp">#i18n{appointment-desk.manage_appointmentdesks.pageTitle}</@aButton>
-			</li>
-	</@tabList>
-</@tabs>
-
+	<@tabs>
+		<@tabList>
+			<#if tab='appointmentdesk'><#assign active = true /></#if>
+				<@tabLink href='jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp' title='#i18n{appointment-desk.manage_appointmentdesks.pageTitle}' />
+		</@tabList>
+	</@tabs>
 </#macro>
