@@ -120,7 +120,7 @@
 							<#list 1..x as seq >
 								<td id="slot-${slot.idSlot!}-desk${seq}" class="place selectable <#if slot.isOpen && ( seq-slot.maxCapacity lte 0) >slot-open<#else>slot-close</#if>" data-slot="{'idSlot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" ></td>	
 							</#list>
-							<td id="slot-${slot.idSlot!}-desk${x+1!}" class="bg-danger" data-slot="" >
+							<td id="slot-${slot.idSlot!}-desk${x+1!}" class="bg-danger is-surbook" data-slot="" >
 						</tr>
 					</#list>
 					</@table>
@@ -235,14 +235,23 @@ if( $('.selectable').length > 0 ){
 			backgroundColor: "rgba(0, 248, 41, 0.5)"
 		}       
 	});
+
 	selectable.table();
 
-	selectable.on("end", function(e, selected, unselected) {
+	selectable.on( "end", function(e, selected, unselected) {
 		var slotData='', idx=1;
-		const a=selectable.getSelectedNodes();
-		const slotSize = a.length;
+		var a=selectable.getSelectedNodes();
+		var slotSize = a.length;
 		if ( slotSize > 0 ){
 			a.forEach( function( el ){
+				var sClass = el.classList.contains('is-multi');
+				var sItems = '.' + el.dataset.multi;
+				var items = document.querySelectorAll( sItems );
+				selectable.select(items);
+			});
+			b=selectable.getSelectedNodes();
+			var slotSize = b.length;
+			b.forEach( function( el ){
 				slotData = slotData + el.dataset.slot;
 				if( idx < slotSize ) slotData = slotData + ','
 				idx++; 
@@ -351,7 +360,6 @@ $(function () {
 		todayBtn : true,
 		todayHighLight : true,
 		autoclose : true
-
 	});  
 	
 	<#if list_comments?size gt 0>
@@ -408,19 +416,23 @@ var nSurbook=${numb_desk}+1;
 		<#else>
 			pos++;
 		</#if>
-
+		
 		var slot=$('#slot-${slotApp.idSlot}-desk' + pos );
 		if ( slot.hasClass('is-occupied') ){
 			pos++;
 			slot=$('#slot-${slotApp.idSlot}-desk' + pos );
 		}
-		
+		slot.attr('data-multi','multi-${app.idAppointment}');
+		slot.attr('data-rdv','rdv${app.idAppointment}_slot${slotApp.idSlot!}');
 		if( slot.hasClass('slot-open') ){
 			slot.addClass('is-occupied');
-			slot.attr('data-rdv','rdv${app.idAppointment}_slot${slotApp.idSlot!}');
+			<#if app.slot?size gt 1>slot.addClass('is-multi multi-${app.idAppointment}');</#if>
 			slot.append('<span> ${app.user.lastName} ${app.user.firstName} <#if app.nbPlaces gt 1>( nb pers. ${app.nbPlaces} )</#if> </span>');
 		} else {
+			slot.addClass('is-occupied');
+			<#if app.slot?size gt 1>slot.addClass('is-multi multi-${app.idAppointment}');</#if>
 			var surbookSlot=$('#slot-${slotApp.idSlot}-desk' + nSurbook );
+			<#if app.slot?size gt 1>surbookSlot.addClass('is-surbook-${app.idAppointment}' );</#if>
 			surbookSlot.attr('data-rdv','rdv${app.idAppointment}_slot${slotApp.idSlot!}');
 			surbookSlot.append('<span class="surbook"> ${app.user.lastName} ${app.user.firstName} <#if app.nbPlaces gt 1>( nb pers. ${app.nbPlaces} )</#if> </span>');
 		} 
@@ -431,13 +443,17 @@ var nSurbook=${numb_desk}+1;
 	<#if app.slot?size gt 1>
 		<#assign idx=1>
 		<#list app.slot?sort_by('startingDateTime') as appSlot>
-			console.log( '${app.idAppointment} slot${appSlot.idSlot!}  ${appSlot.startingDateTime} ${app.slot?size}' );
+			var hasSurbookSlot=$('.is-surbook-${app.idAppointment}' ).length;
+			console.log( '${app.idAppointment} slot${appSlot.idSlot!}  ${appSlot.startingDateTime} ${app.slot?size} has mulit : ' + hasSurbookSlot );
 			<#if idx = 1>
-				var hSize = 30 * ${app.slot?size} + 'px';
-				$('[data-rdv="rdv${app.idAppointment}_slot${appSlot.idSlot!}"] > span').css('height', hSize );
+				var hSize = 42 * ${app.slot?size}  + 'px';
+				$('.multi-${app.idAppointment}:first > span').css('height', hSize );
+				$('.is-surbook-${app.idAppointment} > .surbook').css('background-color', '#f8000c' ).css('color', '#f8000c' ).css('height', hSize );
+				$('.is-surbook-${app.idAppointment}:first > .surbook').css('color', '#fff' );
 				<#assign idx++>
 			<#else>
-				$('[data-rdv="rdv${app.idAppointment}_slot${appSlot.idSlot!}"] > span').css('color','#6d015b');
+				$('.multi-${app.idAppointment} > span').css('color','#6d015b');
+				$('.multi-${app.idAppointment}:first > span').css('color','#fff');
 			</#if>
 		</#list>
 	</#if>
@@ -445,4 +461,4 @@ var nSurbook=${numb_desk}+1;
 
 </script>
 <#include "/admin/util/editor/editor.html" />
-<@initEditor />
+<@initEditor type='comment' />

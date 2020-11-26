@@ -18,17 +18,26 @@
 	margin-bottom: 1px
 }
 
-
 .open-desk,
 #toggle-add-comment{
 	z-index: 99;
 }
+
 /* *** Surbook **** */
-.surbook{
+.is-surbook{
 	border: 1px solid #000;
 	border-radius: 5px;
 	margin-right: 2px;
 	white-space: pre; 
+	
+}
+
+.surbook{
+	position: absolute;
+	top: 0;
+	left:5px;
+	width:95%;
+	display: block;
 }
 
 /* **** ***** ***** */
