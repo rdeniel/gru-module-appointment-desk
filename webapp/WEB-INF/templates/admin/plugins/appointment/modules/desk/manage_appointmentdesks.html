@@ -400,40 +400,49 @@ const countOccurrences = (aSlots) => {
 }
 var nSurbook=${numb_desk}+1;
 <#assign currSlot=0>
-<#list list_appointment?sort_by('nbPlaces') as app>
+<#list list_appointment as app>
 	<#list app.slot?sort_by('startingDateTime') as slotApp>
 		<#if currSlot!=slotApp.idSlot>
 			<#assign currSlot=slotApp.idSlot>	
-			console.log( 'currSlot : ${currSlot} / Slot : ${slotApp.idSlot} ' );
 			var pos=1;
 		<#else>
 			pos++;
 		</#if>
-		console.log( '#slot-${slotApp.idSlot}-desk' + pos );
+
 		var slot=$('#slot-${slotApp.idSlot}-desk' + pos );
+		if ( slot.hasClass('is-occupied') ){
+			pos++;
+			slot=$('#slot-${slotApp.idSlot}-desk' + pos );
+		}
+		
 		if( slot.hasClass('slot-open') ){
+			slot.addClass('is-occupied');
 			slot.attr('data-rdv','rdv${app.idAppointment}_slot${slotApp.idSlot!}');
-			slot.html('<span> ${app.user.lastName} ${app.user.firstName} <#if app.nbPlaces gt 1>( nb pers. ${app.nbPlaces} )</#if> </span>');
+			slot.append('<span> ${app.user.lastName} ${app.user.firstName} <#if app.nbPlaces gt 1>( nb pers. ${app.nbPlaces} )</#if> </span>');
 		} else {
-			console.log( '${app.user.lastName} ${app.user.firstName} - Slot ${slotApp.idSlot} [ ${slotApp.startingDateTime} - ${slotApp.endingDateTime} ] pos : ' + pos + ' | rdv : ${app.idAppointment}' );
 			var surbookSlot=$('#slot-${slotApp.idSlot}-desk' + nSurbook );
 			surbookSlot.attr('data-rdv','rdv${app.idAppointment}_slot${slotApp.idSlot!}');
 			surbookSlot.append('<span class="surbook"> ${app.user.lastName} ${app.user.firstName} <#if app.nbPlaces gt 1>( nb pers. ${app.nbPlaces} )</#if> </span>');
 		} 
 	</#list>
 </#list>
+
 <#list list_appointment as app>
 	<#if app.slot?size gt 1>
-		<#list app.slot as appSlot>
-			<#if appSlot = app.slot?first>
+		<#assign idx=1>
+		<#list app.slot?sort_by('startingDateTime') as appSlot>
+			console.log( '${app.idAppointment} slot${appSlot.idSlot!}  ${appSlot.startingDateTime} ${app.slot?size}' );
+			<#if idx = 1>
 				var hSize = 30 * ${app.slot?size} + 'px';
 				$('[data-rdv="rdv${app.idAppointment}_slot${appSlot.idSlot!}"] > span').css('height', hSize );
+				<#assign idx++>
 			<#else>
 				$('[data-rdv="rdv${app.idAppointment}_slot${appSlot.idSlot!}"] > span').css('color','#6d015b');
 			</#if>
 		</#list>
 	</#if>
 </#list>
+
 </script>
 <#include "/admin/util/editor/editor.html" />
 <@initEditor />
