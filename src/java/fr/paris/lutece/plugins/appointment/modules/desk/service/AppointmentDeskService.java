@@ -8,7 +8,6 @@ import java.util.concurrent.locks.Lock;
 import org.apache.commons.lang.StringUtils;
 
 import fr.paris.lutece.plugins.appointment.business.planning.ClosingDay;
-import fr.paris.lutece.plugins.appointment.business.slot.Period;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.AppointmentDeskPlugin;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementSlot;
@@ -112,6 +111,7 @@ public class AppointmentDeskService
 		    		   slot.setMaxCapacity(oldSlot.getMaxCapacity() + 1);
 		 		       slot.setNbPotentialRemainingPlaces( oldSlot.getNbPotentialRemainingPlaces( ) + 1 );
 		    		   slot.setNbRemainingPlaces( oldSlot.getNbRemainingPlaces( ) + 1 );
+		    		   slot.setNbPlacestaken(oldSlot.getNbPlacesTaken( ));
 		
 		    	       slot.setIsOpen( true );
 			

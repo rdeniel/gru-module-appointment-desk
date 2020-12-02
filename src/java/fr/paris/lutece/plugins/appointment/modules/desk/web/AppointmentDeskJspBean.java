@@ -37,7 +37,9 @@ package fr.paris.lutece.plugins.appointment.modules.desk.web;
 
 import fr.paris.lutece.plugins.appointment.business.appointment.Appointment;
 import fr.paris.lutece.plugins.appointment.business.comment.Comment;
+import fr.paris.lutece.plugins.appointment.business.form.Form;
 import fr.paris.lutece.plugins.appointment.business.planning.WeekDefinition;
+import fr.paris.lutece.plugins.appointment.business.rule.ReservationRule;
 import fr.paris.lutece.plugins.appointment.business.slot.Slot;
 import fr.paris.lutece.plugins.appointment.modules.desk.service.AppointmentDeskService;
 import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementSlot;
@@ -45,6 +47,8 @@ import fr.paris.lutece.plugins.appointment.modules.desk.util.IncrementingType;
 import fr.paris.lutece.plugins.appointment.service.AppointmentResourceIdService;
 import fr.paris.lutece.plugins.appointment.service.AppointmentService;
 import fr.paris.lutece.plugins.appointment.service.CommentService;
+import fr.paris.lutece.plugins.appointment.service.FormService;
+import fr.paris.lutece.plugins.appointment.service.ReservationRuleService;
 import fr.paris.lutece.plugins.appointment.service.SlotService;
 import fr.paris.lutece.plugins.appointment.service.WeekDefinitionService;
 import fr.paris.lutece.plugins.appointment.web.dto.AppointmentFilterDTO;
@@ -114,11 +118,10 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String MARK_LIST_SLOT = "list_slot";
     private static final String MARK_LIST_APPOINTMENT = "list_appointment";
     private static final String MARK_LIST_TYPE= "list_types";
+    private static final String MARK_FORM = "appointmentForm";
+
     
     
-
-    private static final String JSP_MANAGE_APPOINTMENTDESKS = "jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp";
-
     // Properties
 
     // Validations
@@ -131,17 +134,15 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
     private static final String ACTION_OPEN_APPOINTMENTDESK = "openAppointmentDesk";
     private static final String ACTION_INCREMENT_MAX_CAPACITY = "incrementMaxCapacity";
 
-
     // Infos
-    
     private static final String JSON_KEY_ERROR = "error";
     private static final String JSON_KEY_SUCCESS = "success";
 
     private static final String  PROPERTY_MESSAGE_ERROR_PARSING_JSON = "module.appointment.desk.error.parsing.json";
     private static final String PROPERTY_MESSAGE_ERROR_ACCESS_DENIED = "module.appointment.desk.error.access.denied";
+    // Session variable to store working values
     private int _nMaxCapacity;
 
-    // Session variable to store working values
 
 
     /**
@@ -158,7 +159,10 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         String strDayDate = request.getParameter( PARAMETER_DATE_DAY );
         LocalDate dateDay = null;
 
-        HashMap<LocalDate, WeekDefinition> mapWeekDefinition = WeekDefinitionService.findAllWeekDefinition( nIdForm );
+        Form form = FormService.findFormLightByPrimaryKey( nIdForm );
+        List<WeekDefinition> listWeekDefinition = WeekDefinitionService.findListWeekDefinition( nIdForm );
+        Map<LocalDate, ReservationRule> mapReservationRule = ReservationRuleService.findAllReservationRule( nIdForm, listWeekDefinition );
+
         if ( StringUtils.isNotEmpty( strDayDate ) )
         {
 
@@ -173,7 +177,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
             strDayDate = DateUtil.getDateString( Date.from( dateDay.atStartOfDay( ).atZone( ZoneId.systemDefault( ) ).toInstant( ) ), getLocale( ) );
         }
         int appointmentDesk=0;
-        List<Slot> listSlot = SlotService.buildListSlot( nIdForm, mapWeekDefinition, dateDay, dateDay );
+        List<Slot> listSlot = SlotService.buildListSlot( nIdForm, mapReservationRule, dateDay, dateDay );
         if( !listSlot.isEmpty() ) {
         	
         	Slot slot = listSlot.stream( ).max( Comparator.comparing( Slot::getMaxCapacity ) ).orElseThrow( NoSuchElementException::new );
@@ -182,10 +186,10 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         }
         Map<String, Object> model = getModel();
         java.sql.Date dateSqlDaey= java.sql.Date.valueOf(dateDay);
-        List<Comment> listComment= CommentService.findListCommentsInclusive( dateSqlDaey, dateSqlDaey , nIdForm);
+        List<Comment> listComment= CommentService.findListCommentsInclusive( dateSqlDaey, dateSqlDaey , nIdForm );
         
         AppointmentFilterDTO filter= new AppointmentFilterDTO ();
-        filter.setIdForm(nIdForm);
+        filter.setIdForm( nIdForm );
         filter.setStartingDateOfSearch( java.sql.Date.valueOf( dateDay ) );
         filter.setEndingDateOfSearch( java.sql.Date.valueOf( dateDay ) );
         
@@ -199,6 +203,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         model.put( MARK_LOCALE, getLocale( ) );
         model.put( MARK_DATE_DAY, strDayDate );
         model.put( MARK_ID_FORM, nIdForm );
+        model.put( MARK_FORM, form );
         model.put( MARK_MACRO_LOCALE, getLocale( ) );
         model.put( MARK_LIST_TYPE, getListTypes( ));
 

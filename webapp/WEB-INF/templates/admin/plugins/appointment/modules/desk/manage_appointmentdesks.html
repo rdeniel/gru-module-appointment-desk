@@ -310,7 +310,7 @@ if( $('.selectable').length > 0 ){
 $(function () {
 	/* Add Form title */
 	// FIXME : Add form.title to model
-	$('.content-header h1').html('<a href="jsp/admin/plugins/appointment/ManageAppointmentForms.jsp" title="#i18n{appointment.adminFeature.ManageAppointmentForm.name}">#i18n{appointment.adminFeature.ManageAppointmentForm.name} <small>Formulaire XX</small></a>');
+	$('.content-header h1').html('<a href="jsp/admin/plugins/appointment/ManageAppointmentForms.jsp" title="#i18n{appointment.adminFeature.ManageAppointmentForm.name}">#i18n{appointment.adminFeature.ManageAppointmentForm.name} <small>${appointmentForm.title!}</small></a>');
 	$('.bt-slot > .fa').toggle();
 	
 	$('#day').datepicker({
