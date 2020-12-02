@@ -365,7 +365,7 @@ $(function () {
 	<#if list_comments?size gt 0>
 		<#list list_comments as comment>
 			<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')?replace('\"', '\\"')}</#assign>
-			$('#comment_${comment.id} p').prepend( '[ ${comment.creatorUserName!} | ${comment.creationDate?date.xs!} ] ').append( '<div class="btn-comments"><a href="" class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_end\":\"${comment.endingValidityDate!}" }\' ><i class="fa fa-pencil fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon text-danger"><i class="fa fa-remove fa-fw"></i></a></div>');
+			$('#comment_${comment.id} p').prepend( '[ ${comment.creatorUserName!} | ${comment.creationDate?date.xs!} ] ').append( '<div class="btn-comments"><a href="" class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}" }\' ><i class="fa fa-pencil fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon text-danger"><i class="fa fa-remove fa-fw"></i></a></div>');
 			var json = {
 				"container": "body",
 				"placement" : "bottom",
@@ -376,7 +376,7 @@ $(function () {
 				labelEventDate='Le ' + '${comment.startingValidityDate?date.xs}';
 			} else {
 				moment.locale("${locale}");
-				labelEventDate = 'Du ' + '${comment.startingValidityDate?date.xs}'+ ' au '+ '${comment.endingValidityDate?date.xs}';
+				labelEventDate = 'Du ' + '${comment.startingValidityDate?date.xs} ${comment.startingValidityTime!}'+ ' au '+ '${comment.endingValidityDate?date.xs} ${comment.endingValidityTime!}';
 			}
 			json.content = '<p>' + labelEventDate +'<p><hr>${comment_title}<hr><p><strong>Par ${comment.creatorUserName!}</strong> le <time>${comment.creationDate!}</time>' ;
 			$('#comment_${comment.id} p').popover( json );    
@@ -391,6 +391,8 @@ $(function () {
 		tinyMCE.activeEditor.setContent( formValues.comment_text );
 		$( "#modify-comment input[name='startingValidityDate']" ).datepicker().datepicker( 'setDate', new Date( formValues.comment_start ) );
 		$( "#modify-comment input[name='endingValidityDate']" ).datepicker().datepicker( 'setDate', new Date( formValues.comment_end ) );
+        $( "#modify-comment input[name='startingValidityTime']" ).val( formValues.comment_start_time );
+        $( "#modify-comment input[name='endingValidityTime']" ).val( formValues.comment_end_time );
 		$( "#modify-comment" ).modal('show');
 	});
 });  
