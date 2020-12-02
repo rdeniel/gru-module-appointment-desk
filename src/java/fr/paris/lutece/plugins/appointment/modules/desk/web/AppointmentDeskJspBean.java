@@ -160,9 +160,11 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
         LocalDate dateDay = null;
 
         Form form = FormService.findFormLightByPrimaryKey( nIdForm );
-        List<WeekDefinition> listWeekDefinition = WeekDefinitionService.findListWeekDefinition( nIdForm );
-        Map<LocalDate, ReservationRule> mapReservationRule = ReservationRuleService.findAllReservationRule( nIdForm, listWeekDefinition );
+       HashMap<LocalDate, WeekDefinition> mapWeekDefinition = WeekDefinitionService.findAllWeekDefinition( nIdForm );
 
+       /* List<WeekDefinition> listWeekDefinition = WeekDefinitionService.findListWeekDefinition( nIdForm );
+        Map<LocalDate, ReservationRule> mapReservationRule = ReservationRuleService.findAllReservationRule( nIdForm, listWeekDefinition );
+*/
         if ( StringUtils.isNotEmpty( strDayDate ) )
         {
 
@@ -177,7 +179,7 @@ public class AppointmentDeskJspBean extends AbstractManageAppointmentDeskJspBean
             strDayDate = DateUtil.getDateString( Date.from( dateDay.atStartOfDay( ).atZone( ZoneId.systemDefault( ) ).toInstant( ) ), getLocale( ) );
         }
         int appointmentDesk=0;
-        List<Slot> listSlot = SlotService.buildListSlot( nIdForm, mapReservationRule, dateDay, dateDay );
+        List<Slot> listSlot = SlotService.buildListSlot( nIdForm, mapWeekDefinition, dateDay, dateDay );
         if( !listSlot.isEmpty() ) {
         	
         	Slot slot = listSlot.stream( ).max( Comparator.comparing( Slot::getMaxCapacity ) ).orElseThrow( NoSuchElementException::new );
