@@ -53,7 +53,8 @@ public class AppointmentDeskService
 	    	        slot.setMaxCapacity(oldSlot.getMaxCapacity() - 1);
 	    	        slot.setNbPotentialRemainingPlaces( oldSlot.getNbPotentialRemainingPlaces( ) - 1  );
 	    	        slot.setNbRemainingPlaces( oldSlot.getNbRemainingPlaces( ) - 1  );
-		
+		    		slot.setNbPlacestaken(oldSlot.getNbPlacesTaken( ));
+
 	    		     TransactionManager.beginTransaction( AppointmentDeskPlugin.getPlugin( ) );  
 	    	        	
 	    		     SlotSafeService.saveSlot( slot );
