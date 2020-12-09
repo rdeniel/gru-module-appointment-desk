@@ -72,7 +72,7 @@
 				<div class="fc-clear"></div>
 				<div class="fc-view-container">
 					<div class="fc-view fc-agendaWeek-view fc-agenda-view">
-					<@table id='selectable' class="clearfix">
+					<@table id='selectable' class="clearfix" >
 					<tr>
 						<th>
 							<@button type='button' color='link' style='btn-link' class='open-desk' params=' data-toggle="modal"' buttonTargetId='#deskModal' title='#i18n{appointmentdesk.manage_appointmentdesks.label.addDesk}' hideTitle=['all'] buttonNested=true >
@@ -101,6 +101,7 @@
 						<td colspan="${x}" class="">
 						<#if list_comments?size gt 0>
 							<#list list_comments as comment>
+							<#if !comment.startingValidityTime?? && !comment.endingValidityTime??>
 							<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')?replace('\"', '\\"')}</#assign>
 							<span class="fc-event comments">
 								<div class="fc-content " id="comment_${comment.id}">
@@ -109,14 +110,32 @@
 									</span>
 								</div>
 							</span>
+							</#if>
 							</#list>
+							
 						</#if>
 						</td>
 						<td class="bg-danger"></td>
 					</tr>
 					<#list list_slot as slot>
 						<tr>
-							<td data-selectable="row">${slot.startingTime!}</td>	
+							<td data-selectable="row">${slot.startingTime!}
+							<#if list_comments?size gt 0>
+                            <#list list_comments as comment>
+                            <#if comment.startingValidityTime?? || comment.endingValidityTime??>
+                            <#assign startLabel>${comment.startingValidityTime!'${list_slot[0].startingTime!}'}</#assign>
+                            <#assign endLabel>${comment.endingValidityTime!'${list_slot[list_slot?size - 1].endingTime!}'}</#assign>
+                            <#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')?replace('\"', '\\"')}</#assign>
+                            <#if startLabel?split(':')[0] == slot.startingTime?split(':')[0]>
+                            <span class="fc-event comments timed-comment" style="height: calc(( ${endLabel?split(':')[0]} - ${startLabel?split(':')[0]} ) * 100%);">
+                                <div class="fc-content hover-content timed-comment-content" id="comment_${comment.id}" >
+                                </div>
+                            </span>
+                            </#if>
+                            </#if>
+                            </#list>
+                            </#if>
+							</td>	
 							<#list 1..x as seq >
 								<td id="slot-${slot.idSlot!}-desk${seq}" class="place selectable <#if slot.isOpen && ( seq-slot.maxCapacity lte 0) >slot-open<#else>slot-close</#if>" data-slot="{'idSlot':'${slot.idSlot!}','startingDateTime':'${slot.startingDateTime}','endingDateTime':'${slot.endingDateTime}','maxCapacity':'${slot.maxCapacity}','isOpen':'<#if slot.isOpen && seq lte slot.maxCapacity >true<#else>false</#if>','isSpecific':'${slot.isSpecific?c}','idForm':'${slot.idForm!1}'}" ></td>	
 							</#list>
@@ -310,7 +329,7 @@ if( $('.selectable').length > 0 ){
 $(function () {
 	/* Add Form title */
 	// FIXME : Add form.title to model
-	$('.content-header h1').html('<a href="jsp/admin/plugins/appointment/ManageAppointmentForms.jsp" title="#i18n{appointment.adminFeature.ManageAppointmentForm.name}">#i18n{appointment.adminFeature.ManageAppointmentForm.name} <small>${appointmentForm.title!}</small></a>');
+	$('.content-header h1').html("<a href=\"jsp/admin/plugins/appointment/ManageAppointmentForms.jsp\" title=\"#i18n{appointment.adminFeature.ManageAppointmentForm.name}\">#i18n{appointment.adminFeature.ManageAppointmentForm.name} <small>${appointmentForm.title!}</small></a>");
 	$('.bt-slot > .fa').toggle();
 	
 	$('#day').datepicker({
@@ -365,6 +384,7 @@ $(function () {
 	<#if list_comments?size gt 0>
 		<#list list_comments as comment>
 			<#assign comment_title>${comment.comment?replace('\n', '')?replace('\r', '')?replace('\rn', '')?replace('\'', '&apos;')?replace('\"', '\\"')}</#assign>
+			<#if !comment.startingValidityTime?? && !comment.endingValidityTime??>
 			$('#comment_${comment.id} p').prepend( '[ ${comment.creatorUserName!} | ${comment.creationDate?date.xs!} ] ').append( '<div class="btn-comments"><a href="" class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}" }\' ><i class="fa fa-pencil fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon text-danger"><i class="fa fa-remove fa-fw"></i></a></div>');
 			var json = {
 				"container": "body",
@@ -372,14 +392,45 @@ $(function () {
 				"html" : true,
 				"trigger" : "hover"
 			};
+			<#else>
+	        $('#comment_${comment.id}').append( '<div class="btn-comments"><span data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}", \"comment_creator\":\"${comment.creatorUserName!}", \"comment_creation_date\":\"${comment.creationDate!}" }\' ><i class="fa fa-pencil fa-fw"></i></span></div>');
+	        var json = {
+	                "container": "body",
+	                "placement" : "right",
+	                "html" : true,
+	                "trigger" : "click"
+	            };
+	        </#if>
 			if ( '${comment.endingValidityDate}' == null || '${comment.endingValidityDate}' == undefined ){
 				labelEventDate='Le ' + '${comment.startingValidityDate?date.xs}';
 			} else {
 				moment.locale("${locale}");
 				labelEventDate = 'Du ' + '${comment.startingValidityDate?date.xs} ${comment.startingValidityTime!}'+ ' au '+ '${comment.endingValidityDate?date.xs} ${comment.endingValidityTime!}';
+				
 			}
-			json.content = '<p>' + labelEventDate +'<p><hr>${comment_title}<hr><p><strong>Par ${comment.creatorUserName!}</strong> le <time>${comment.creationDate!}</time>' ;
-			$('#comment_${comment.id} p').popover( json );    
+			
+			<#if !comment.startingValidityTime?? && !comment.endingValidityTime??>
+			json.content = '<p>' + labelEventDate +'</p><hr>${comment_title}<hr><p><strong>Par ${comment.creatorUserName!}</strong> le <time>${comment.creationDate!}</time></p>';
+			$('#comment_${comment.id} p').popover( json );
+			<#else>
+			$("#comment_${comment.id}").click( function ( event ) {
+				json.content = '<p>' + labelEventDate +'</p><hr>${comment_title}<hr><p><strong>Par ${comment.creatorUserName!}</strong> le <time>${comment.creationDate!}</time></p><a class="toggle-modify-comment" data-json=\'{\"id_comment\": \"${comment.id}\", \"comment_text\": \"${comment_title}\", \"comment_start\":\"${comment.startingValidityDate!}\", \"comment_start_time\":\"${comment.startingValidityTime!}", \"comment_end\":\"${comment.endingValidityDate!}", \"comment_end_time\":\"${comment.endingValidityTime!}", \"comment_creator\":\"${comment.creatorUserName!}", \"comment_creation_date\":\"${comment.creationDate!}" }\' ><i class="fa fa-pencil fa-fw"></i></a><a href="jsp/admin/plugins/appointment/Comments.jsp?action=confirmRemoveComment&id_comment=${comment.id}" class="closeon text-danger"><i class="fa fa-remove fa-fw"></i></a>';
+			   $("div[id*=comment_]").not($("#comment_${comment.id}")).each(function(index, element){
+				   if( isOver( $(this), event ) ) {
+					    json.content += "<p>Du " + new Date(jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_start).toLocaleDateString("${language}") + " " + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_start_time + " au " + new Date(jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_end).toLocaleDateString("${language}") + " " + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_end_time + "</p>";
+					    json.content += "<hr>" + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_text;
+					    json.content += "<hr><p><strong>Par " + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_creator + "</strong> le " + jQuery.parseJSON( $(this).children().children().attr("data-json") ).comment_creation_date + "</p>";
+				    
+				   }
+				      
+			    });
+			   
+ 			   $("#comment_${comment.id}").attr("data-content", json.content);
+ 			   $("#comment_${comment.id}").popover( json );
+			   
+			});
+			</#if>
+			 
 
 		</#list>
 	</#if>
@@ -461,6 +512,21 @@ var nSurbook=${numb_desk}+1;
 	</#if>
 </#list>
 
+function isOver( element, e ) {
+	let elementCalculated = element;
+    var left = elementCalculated.offset().left,
+        top = elementCalculated.offset().top,
+        right = left + element.width(),
+        bottom = top + element.height();
+    console.log("souris = " + e.pageX + ", gauche = " + left +", souris hz = " + e.pageX +", droite = " + right + ", souris vertical = " + e.pageY + ", haut= " + top + ", souris vertical = " + e.pageY + ", bas = " + bottom);
+        
+    if ( e.pageX > left && e.pageX < right && e.pageY > top && e.pageY < bottom ){
+    	return true;
+    }else{
+    	return false;
+    }
+    
+}
 </script>
 <#include "/admin/util/editor/editor.html" />
 <@initEditor type='comment' />
