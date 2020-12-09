@@ -118,3 +118,19 @@
 	border-left-color: #f8000c !important;
 	border-left-width: 5px;
 }
+
+.table-responsive{
+	overflow: visible !important;
+}
+
+.timed-comment{
+	width: 15px;
+	position: absolute;
+	top:0;
+	left: -20px; 
+}
+
+.timed-comment-content{
+	height:100%;
+	width: 100%;
+}
