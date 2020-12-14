@@ -15,17 +15,7 @@
     
     <!-- Admin features parameters -->
 	<admin-features>
-		
-		<admin-feature>
-            <feature-id>APPOINTMENT_DESK_MANAGEMENT</feature-id>
-            <feature-title>module.appointment.desk.adminFeature.ManageAppointmentDesk.name</feature-title>
-            <feature-description>module.appointment.desk.adminFeature.ManageAppointmentDesk.description</feature-description>
-            <feature-level>2</feature-level>
-            <feature-url>jsp/admin/plugins/appointment/modules/desk/ManageAppointmentDesks.jsp</feature-url>
-            <feature-icon-url/>
-		</admin-feature>
-		
-		
+						
     </admin-features>
       <!-- XPages parameters -->
     <applications>
